@@ -2,9 +2,14 @@
   <div class="mission-hall">
     <div class="header">
       <h2>📜 灵务阁 - 任务大厅</h2>
-      <el-button type="primary" size="large" @click="openPublishDialog">
-        + 发布悬赏
+      <div> <el-button type="info" @click="$router.push('/dashboard')" style="margin-right: 10px">
+        👤 个人中心
       </el-button>
+
+        <el-button type="primary" size="large" @click="openPublishDialog">
+          + 发布悬赏
+        </el-button>
+      </div>
     </div>
 
     <el-table :data="tableData" border style="width: 100%" v-loading="loading">

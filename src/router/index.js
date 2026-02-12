@@ -11,6 +11,11 @@ const routes = [
         name: 'MissionHall',
         // 懒加载：访问时才加载这个文件，速度快
         component: () => import('../views/MissionHall.vue')
+    },
+    {
+        path: '/dashboard',
+        name: 'UserDashboard',
+        component: () => import('../views/UserDashboard.vue')
     }
 ]
 
