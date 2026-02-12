@@ -28,3 +28,12 @@ export function acceptMission(data) {
         data: data
     })
 }
+
+// 4. 提交任务 (结算)
+export function submitMission(data) {
+    return request({
+        url: '/mission/submit',
+        method: 'post',
+        data: data
+    })
+}

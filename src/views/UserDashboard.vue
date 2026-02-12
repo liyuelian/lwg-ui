@@ -11,7 +11,7 @@
           </div>
         </div>
         <div class="actions">
-          <el-button @click="$router.push('mission-hall')">返回大厅</el-button>
+          <el-button @click="$router.push('/mission-hall')">返回大厅</el-button>
         </div>
       </div>
     </el-card>
@@ -27,7 +27,9 @@
               <template #default="{ row }">
                 <el-tag v-if="row.status === 0">待接单</el-tag>
                 <el-tag v-else-if="row.status === 1" type="warning">进行中</el-tag>
-                <el-tag v-else type="success">已完成</el-tag>
+                <el-tag v-else-if="row.status === 2" type="primary">待验收</el-tag>
+                <el-tag v-else-if="row.status === 3" type="success">完成</el-tag>
+                <el-tag v-else type="info">已取消</el-tag>
               </template>
             </el-table-column>
             <el-table-column prop="createTime" label="发布时间" width="180"/>
@@ -40,10 +42,27 @@
             <el-table-column prop="reward" label="赏金" width="100"/>
             <el-table-column label="状态" width="100">
               <template #default="{ row }">
-                <el-tag v-if="row.status === 1" type="warning">进行中</el-tag>
-                <el-tag v-else type="success">已完成</el-tag>
+                <el-tag v-if="row.status === 0">待接单</el-tag>
+                <el-tag v-else-if="row.status === 1" type="warning">进行中</el-tag>
+                <el-tag v-else-if="row.status === 2" type="primary">待验收</el-tag>
+                <el-tag v-else-if="row.status === 3" type="success">完成</el-tag>
+                <el-tag v-else type="info">已取消</el-tag>
               </template>
             </el-table-column>
+
+            <el-table-column label="操作" width="120" align="center">
+              <template #default="{ row }">
+                <el-button
+                    v-if="row.status === 1"
+                    type="success"
+                    size="small"
+                    @click="openSubmitDialog(row)"
+                >
+                  提交任务
+                </el-button>
+              </template>
+            </el-table-column>
+
           </el-table>
         </el-tab-pane>
 
@@ -70,59 +89,134 @@
 
       </el-tabs>
     </el-card>
+
+    <el-dialog v-model="submitDialogVisible" title="🧾 提交任务凭证" width="500px">
+      <el-form :model="submitForm" label-width="80px">
+        <el-form-item label="任务ID">
+          <el-input v-model="submitForm.missionId" disabled/>
+        </el-form-item>
+
+        <el-form-item label="交付描述">
+          <el-input
+              v-model="submitForm.desc"
+              type="textarea"
+              rows="3"
+              placeholder="例如：幸不辱命，在后山猎得三阶火灵狐一只"
+          />
+        </el-form-item>
+
+        <el-form-item label="凭证图片">
+          <el-input v-model="submitForm.image" placeholder="输入图片URL (这里先随便填)"/>
+        </el-form-item>
+
+        <el-form-item label="提交材料">
+          <el-input
+              v-model="submitForm.materialsRaw"
+              placeholder="用逗号隔开，例如：妖丹,狐皮"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <span>
+          <el-button @click="submitDialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleSubmit">确认交付</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import {ref, onMounted} from 'vue'
 import {getUserInfo, getMyMissions, getMyTransactions} from '../api/user'
+// 引入新的 submitMission 接口
+import {submitMission} from '../api/mission'
+import {ElMessage} from 'element-plus'
 
 // --- 变量 ---
 const myUserId = Number(localStorage.getItem('lwg_user_id'))
 const userInfo = ref({})
-const activeTab = ref('published')
+const activeTab = ref('accepted') // 默认看接取列表，方便调试
 
 const publishedList = ref([])
 const acceptedList = ref([])
 const transactionList = ref([])
 
-// --- 方法 ---
+// --- 提交任务相关变量 ---
+const submitDialogVisible = ref(false)
+const submitForm = ref({
+  missionId: null,
+  desc: '',
+  image: 'https://via.placeholder.com/150', // 默认给个假图
+  materialsRaw: '' // 前端用字符串输入，提交时转数组
+})
 
-// 1. 加载基本信息
+// --- 基础加载方法 ---
 const loadUserInfo = async () => {
   const res = await getUserInfo(myUserId)
   userInfo.value = res
 }
-
-// 2. 加载我发布的 (type=1)
 const loadPublished = async () => {
   const res = await getMyMissions({userId: myUserId, type: 1})
   publishedList.value = res
 }
-
-// 3. 加载我接取的 (type=2)
 const loadAccepted = async () => {
   const res = await getMyMissions({userId: myUserId, type: 2})
   acceptedList.value = res
 }
-
-// 4. 加载流水
 const loadTransactions = async () => {
   const res = await getMyTransactions(myUserId)
   transactionList.value = res
 }
 
-// 切换 Tab 时触发
 const handleTabClick = (tab) => {
   if (tab.props.name === 'published') loadPublished()
   if (tab.props.name === 'accepted') loadAccepted()
   if (tab.props.name === 'transactions') loadTransactions()
 }
 
-// 初始化
+// ---  提交任务逻辑 ---
+
+// 1. 打开弹窗
+const openSubmitDialog = (row) => {
+  submitForm.value = {
+    missionId: row.id,
+    desc: '',
+    image: 'https://oss.example.com/yaodan.jpg',
+    materialsRaw: ''
+  }
+  submitDialogVisible.value = true
+}
+
+// 2. 确认提交
+const handleSubmit = async () => {
+  // 构造后端需要的复杂 JSON 结构
+  const payload = {
+    missionId: submitForm.value.missionId,
+    userId: myUserId,
+    proofData: {
+      desc: submitForm.value.desc,
+      image: submitForm.value.image,
+      // 把 "妖丹,狐皮" 这种字符串切分成数组 ["妖丹", "狐皮"]
+      materials: submitForm.value.materialsRaw.split(/[,，]/).filter(s => s.trim())
+    }
+  }
+
+  try {
+    await submitMission(payload)
+    ElMessage.success('提交成功！等待雇主验收。')
+    submitDialogVisible.value = false
+    loadAccepted() // 刷新列表，状态应该会变 (看后端逻辑有没有改状态)
+  } catch (error) {
+    // request.js 会处理错误
+  }
+}
+
 onMounted(() => {
+  if (!myUserId) return // 防止没登录报错
   loadUserInfo()
-  loadPublished() // 默认加载第一个tab
+  loadAccepted()
 })
 </script>
 
@@ -153,6 +247,6 @@ onMounted(() => {
 }
 
 .actions {
-  margin-left: auto; /* 把按钮推到最右边 */
+  margin-left: auto;
 }
 </style>
