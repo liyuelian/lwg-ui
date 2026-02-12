@@ -37,3 +37,12 @@ export function submitMission(data) {
         data: data
     })
 }
+
+// 5. 审核任务 (验收/驳回)
+export function auditMission(data) {
+    return request({
+        url: '/mission/audit',
+        method: 'post',
+        data: data // { missionId, userId, pass, remark }
+    })
+}
