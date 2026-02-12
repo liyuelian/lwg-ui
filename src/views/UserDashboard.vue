@@ -11,7 +11,7 @@
           </div>
         </div>
         <div class="actions">
-          <el-button @click="$router.push('/')">返回大厅</el-button>
+          <el-button @click="$router.push('mission-hall')">返回大厅</el-button>
         </div>
       </div>
     </el-card>
@@ -78,7 +78,7 @@ import {ref, onMounted} from 'vue'
 import {getUserInfo, getMyMissions, getMyTransactions} from '../api/user'
 
 // --- 变量 ---
-const myUserId = 2 // 暂时写死，假装我是用户2
+const myUserId = Number(localStorage.getItem('lwg_user_id'))
 const userInfo = ref({})
 const activeTab = ref('published')
 

@@ -2,9 +2,13 @@
   <div class="mission-hall">
     <div class="header">
       <h2>📜 灵务阁 - 任务大厅</h2>
-      <div> <el-button type="info" @click="$router.push('/dashboard')" style="margin-right: 10px">
-        👤 个人中心
-      </el-button>
+      <div>
+        <el-button type="danger" plain @click="handleLogout" style="margin-right: 10px">
+          退出
+        </el-button>
+        <el-button type="info" @click="$router.push('/dashboard')" style="margin-right: 10px">
+          👤 个人中心
+        </el-button>
 
         <el-button type="primary" size="large" @click="openPublishDialog">
           + 发布悬赏
@@ -108,11 +112,20 @@
 import {ref, onMounted} from 'vue'
 import {getMissionList, acceptMission, publishMission} from '../api/mission'
 import {ElMessage} from 'element-plus'
+import {useRouter} from 'vue-router'
 
 // --- 变量定义区  ---
 const loading = ref(false)   // 加载状态
 const tableData = ref([])    // 表格数据 (List<Mission>)
-const myUserId = 2           // 后续更改
+const router = useRouter()
+// 从缓存拿 ID，转成数字
+const myUserId = Number(localStorage.getItem('lwg_user_id'))
+// 退出登录方法
+const handleLogout = () => {
+  localStorage.removeItem('lwg_user_id')
+  router.push('/login')
+}
+
 
 // --- 弹窗相关变量 ---
 const dialogVisible = ref(false) // 控制弹窗显示/隐藏

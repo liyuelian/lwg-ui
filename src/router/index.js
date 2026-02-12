@@ -4,7 +4,12 @@ const routes = [
     {
         path: '/',
         // 访问根目录时，自动跳转到任务大厅
-        redirect: '/mission-hall'
+        redirect: '/login'
+    },
+    {
+        path: '/login',
+        name: 'Login',
+        component: () => import('../views/Login.vue')
     },
     {
         path: '/mission-hall',
@@ -22,6 +27,16 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes
+})
+
+router.beforeEach((to, from, next) => {
+    const userId = localStorage.getItem('lwg_user_id')
+
+    if (to.path !== '/login' && !userId) {
+        next('/login') // 没登录，踢回登录页
+    } else {
+        next() // 放行
+    }
 })
 
 export default router
