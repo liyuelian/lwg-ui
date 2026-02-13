@@ -2,22 +2,15 @@
   <div class="dashboard-container">
 
     <div class="user-card">
-
       <div class="left-panel">
         <div class="avatar-container">
           <div class="avatar-border">
-            <el-avatar :size="70" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+            <el-avatar :size="70" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"/>
           </div>
-          <el-tag
-              size="small"
-              :type="userInfo.status === 1 ? 'success' : 'danger'"
-              effect="dark"
-              class="status-pill"
-          >
+          <el-tag size="small" :type="userInfo.status === 1 ? 'success' : 'danger'" effect="dark" class="status-pill">
             {{ userInfo.status === 1 ? '道心通明' : '封印中' }}
           </el-tag>
         </div>
-
         <div class="info-container">
           <div class="name-box">
             <span class="username">{{ userInfo.username || '无名道友' }}</span>
@@ -25,40 +18,34 @@
           </div>
           <div class="tags-box">
             <span class="realm-badge">{{ getRealmText(userInfo.realm) }}</span>
-            <span class="role-badge">炼丹师</span>
           </div>
           <div class="time-box">
             <span>📅 入宗: {{ formatDateSimple(userInfo.createTime) }}</span>
           </div>
         </div>
       </div>
-
       <div class="vertical-divider"></div>
-
       <div class="middle-panel">
         <div class="data-item">
-          <span class="data-label">可用灵石</span>
+          <span class="data-label">可用灵石 (Balance)</span>
           <span class="data-value money">{{ userInfo.balance || 0 }} 💎</span>
         </div>
         <div class="data-item">
             <span class="data-label">
-              冻结押金
-              <el-tooltip content="悬赏暂扣灵石，任务结束多退少补" placement="top">
-                <span class="help-circle">?</span>
-              </el-tooltip>
+              冻结押金 (Frozen)
+              <el-tooltip content="任务保证金，完结后扣除或退回" placement="top"><i
+                  class="help-circle">?</i></el-tooltip>
             </span>
           <span class="data-value frozen">{{ userInfo.frozenBalance || 0 }} ❄️</span>
         </div>
-        <div class="data-item">
-          <span class="data-label">宗门信誉</span>
-          <span class="data-value">100 分</span>
-        </div>
+        <!--        <div class="data-item">-->
+        <!--          <span class="data-label">宗门信誉</span>-->
+        <!--          <span class="data-value">100 分</span>-->
+        <!--        </div>-->
       </div>
-
       <div class="right-panel">
         <button class="primary-btn" @click="$router.push('/mission-hall')">前往大厅</button>
       </div>
-
     </div>
 
     <div class="content-card">
@@ -71,31 +58,27 @@
           <span>⚔️ 我接取的</span>
         </div>
         <div class="tab-item" :class="{ active: activeTab === 'transactions' }" @click="activeTab = 'transactions'">
-          <span>💸 灵石账本</span>
+          <span>📈 财务对账</span>
         </div>
       </div>
 
       <div v-if="activeTab === 'published'" class="tab-content">
-        <el-table :data="publishedList" class="elegant-table" :header-cell-style="{ background: '#f8f9fa', color: '#666' }">
+        <el-table :data="publishedList" class="elegant-table"
+                  :header-cell-style="{ background: '#f8f9fa', color: '#666' }">
           <el-table-column prop="title" label="榜文标题" min-width="200">
-            <template #default="{ row }">
-              <span class="mission-title">{{ row.title }}</span>
-            </template>
+            <template #default="{ row }"><span class="mission-title">{{ row.title }}</span></template>
           </el-table-column>
           <el-table-column prop="reward" label="悬赏" width="120" align="center">
-            <template #default="{ row }">
-              <span class="reward-text">{{ row.reward }} 💎</span>
-            </template>
+            <template #default="{ row }"><span class="reward-text">{{ row.reward }} 💎</span></template>
           </el-table-column>
-          <el-table-column label="当前状态" width="120" align="center">
-            <template #default="{ row }">
-              <span :class="['status-badge', `status-${row.status}`]">{{ getStatusText(row.status) }}</span>
-            </template>
+          <el-table-column label="状态" width="120" align="center">
+            <template #default="{ row }"><span
+                :class="['status-badge', `status-${row.status}`]">{{ getStatusText(row.status) }}</span></template>
           </el-table-column>
           <el-table-column prop="createTime" label="发布时间" width="160" align="center">
             <template #default="{ row }">{{ formatDate(row.createTime) }}</template>
           </el-table-column>
-          <el-table-column label="宗门批复" width="180" align="center">
+          <el-table-column label="批复" width="180" align="center">
             <template #default="{ row }">
               <div v-if="row.status === 2" class="audit-group">
                 <button class="small-outline-btn pass" @click="handleAudit(row, true)">通过</button>
@@ -106,103 +89,163 @@
           </el-table-column>
         </el-table>
       </div>
-
       <div v-if="activeTab === 'accepted'" class="tab-content">
-        <el-table :data="acceptedList" class="elegant-table" :header-cell-style="{ background: '#f8f9fa', color: '#666' }">
+        <el-table :data="acceptedList" class="elegant-table"
+                  :header-cell-style="{ background: '#f8f9fa', color: '#666' }">
           <el-table-column prop="title" label="榜文标题" min-width="200">
-            <template #default="{ row }">
-              <span class="mission-title">{{ row.title }}</span>
-            </template>
+            <template #default="{ row }"><span class="mission-title">{{ row.title }}</span></template>
           </el-table-column>
           <el-table-column prop="reward" label="悬赏" width="120" align="center">
-            <template #default="{ row }">
-              <span class="reward-text">{{ row.reward }} 💎</span>
-            </template>
+            <template #default="{ row }"><span class="reward-text">{{ row.reward }} 💎</span></template>
           </el-table-column>
-          <el-table-column label="当前状态" width="120" align="center">
-            <template #default="{ row }">
-              <span :class="['status-badge', `status-${row.status}`]">{{ getStatusText(row.status) }}</span>
-            </template>
+          <el-table-column label="状态" width="120" align="center">
+            <template #default="{ row }"><span
+                :class="['status-badge', `status-${row.status}`]">{{ getStatusText(row.status) }}</span></template>
           </el-table-column>
           <el-table-column label="操作" width="150" align="center">
             <template #default="{ row }">
-              <button
-                  v-if="row.status === 1"
-                  class="primary-btn small"
-                  @click="openSubmitDialog(row)"
-              >
-                提交复命
-              </button>
+              <button v-if="row.status === 1" class="primary-btn small" @click="openSubmitDialog(row)">提交复命</button>
               <span v-else class="disabled-text">无需操作</span>
             </template>
           </el-table-column>
         </el-table>
       </div>
 
-      <div v-if="activeTab === 'transactions'" class="tab-content">
-        <el-table :data="transactionList" class="elegant-table" :header-cell-style="{ background: '#f8f9fa', color: '#666' }">
-          <el-table-column label="收支类型" width="120" align="center">
-            <template #default="{ row }">
-              <span :class="['type-tag', row.amount > 0 ? 'income' : 'expense']">
-                {{ row.amount > 0 ? '收入' : '支出' }}
-              </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="amount" label="涉及金额" width="150" align="center">
-            <template #default="{ row }">
-                 <span class="money-font" :style="{ color: row.amount > 0 ? '#52c41a' : '#cf1322' }">
-                   {{ row.amount > 0 ? '+' : '' }}{{ row.amount }}
-                 </span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="description" label="备注说明" min-width="200" />
-          <el-table-column prop="createTime" label="记录时间" width="180" align="center">
-            <template #default="{ row }">{{ formatDate(row.createTime) }}</template>
-          </el-table-column>
-        </el-table>
+      <div v-show="activeTab === 'transactions'" class="tab-content finance-dashboard">
+
+        <div class="finance-summary">
+          <div class="summary-card income">
+            <div class="card-icon">📈</div>
+            <div class="card-info">
+              <div class="card-title">累计纳气 (In)</div>
+              <div class="card-num money">+{{ chartStats.totalIn }}</div>
+              <div class="card-sub">含充值、赏金、退押金</div>
+            </div>
+          </div>
+          <div class="summary-card expense">
+            <div class="card-icon">📉</div>
+            <div class="card-info">
+              <div class="card-title">累计耗散 (Out)</div>
+              <div class="card-num expense-num">-{{ Math.abs(chartStats.totalOut) }}</div>
+              <div class="card-sub">含提现、发任务、扣款</div>
+            </div>
+          </div>
+          <div class="summary-card balance">
+            <div class="card-icon">⚖️</div>
+            <div class="card-info">
+              <div class="card-title">净流量 (Net Flow)</div>
+              <div class="card-num" :class="chartStats.net > 0 ? 'money' : 'expense-num'">
+                {{ chartStats.net > 0 ? '+' : '' }}{{ chartStats.net }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-row">
+          <div class="chart-container left">
+            <div class="chart-title">
+              📊 每日收支绝对值
+              <el-tooltip content="绿色=当日进账总和，红色=当日出账总和" placement="top">
+                <i class="help-circle small">?</i>
+              </el-tooltip>
+            </div>
+            <div ref="barChartRef" class="echarts-box"></div>
+          </div>
+          <div class="chart-container right">
+            <div class="chart-title">☯️ 交易类型构成</div>
+            <div ref="pieChartRef" class="echarts-box"></div>
+          </div>
+        </div>
+
+        <div class="table-section">
+          <div class="section-header">
+            <span>📜 交易流水明细</span>
+            <div class="filter-group">
+              <el-radio-group v-model="assetFilter" size="small">
+                <el-radio-button label="all">全部</el-radio-button>
+                <el-radio-button label="1">流动余额</el-radio-button>
+                <el-radio-button label="2">冻结押金</el-radio-button>
+              </el-radio-group>
+            </div>
+          </div>
+
+          <el-table
+              :data="filteredTransactionList"
+              class="elegant-table"
+              height="400"
+              :header-cell-style="{ background: '#f8f9fa', color: '#666' }"
+          >
+
+            <el-table-column prop="createTime" label="交易时间" width="170">
+              <template #default="{ row }">
+                <span class="mono-font">{{ formatDate(row.createTime) }}</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="assetType" label="变动账户" width="110" align="center">
+              <template #default="{ row }">
+                <el-tag :type="row.assetType === 1 ? 'success' : 'primary'" effect="light" size="small" round>
+                  {{ row.assetType === 1 ? '流动余额' : '冻结押金' }}
+                </el-tag>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="type" label="交易类型" width="110" align="center">
+              <template #default="{ row }">
+                <el-tag :type="getTransactionTypeTag(row.type)" effect="plain" size="small">
+                  {{ getTransactionTypeText(row.type) }}
+                </el-tag>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="amount" label="发生金额" width="130" align="right">
+              <template #default="{ row }">
+                  <span class="money-font" :style="{ color: row.amount > 0 ? '#52c41a' : '#cf1322', fontSize: '15px' }">
+                    {{ row.amount > 0 ? '+' : '' }}{{ row.amount }}
+                  </span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="balanceAfter" label="变动后余额" width="130" align="right">
+              <template #default="{ row }">
+                <span class="balance-snapshot">{{ row.balanceAfter !== undefined ? row.balanceAfter : '--' }}</span>
+              </template>
+            </el-table-column>
+
+            <el-table-column prop="description" label="备注" min-width="180" show-overflow-tooltip/>
+
+          </el-table>
+        </div>
+
       </div>
 
     </div>
 
-    <el-dialog
-        v-model="submitDialogVisible"
-        width="500px"
-        class="custom-dialog paper-dialog"
-        :show-close="false"
-        align-center
-    >
+    <el-dialog v-model="submitDialogVisible" width="500px" class="custom-dialog paper-dialog" :show-close="false"
+               align-center>
       <template #header>
         <div class="paper-header">
           <div class="paper-title">提 交 复 命 书</div>
           <button class="close-icon" @click="submitDialogVisible = false">×</button>
         </div>
       </template>
-
       <div class="paper-content">
         <el-form :model="submitForm" label-position="top">
           <el-form-item label="任务编号">
-            <div class="ink-field disabled">
-              #{{ submitForm.missionId }}
-            </div>
+            <div class="ink-field disabled">#{{ submitForm.missionId }}</div>
           </el-form-item>
           <el-form-item label="复命详情">
-            <div class="ink-textarea-wrapper">
-              <textarea v-model="submitForm.desc" class="ink-textarea" rows="4" placeholder="请详细描述任务完成情况..."></textarea>
-            </div>
+            <div class="ink-textarea-wrapper"><textarea v-model="submitForm.desc" class="ink-textarea" rows="4"
+                                                        placeholder="请详细描述任务完成情况..."></textarea></div>
           </el-form-item>
           <el-form-item label="留影石链接 (凭证图片)">
-            <div class="ink-field">
-              <input v-model="submitForm.image" placeholder="http://..." />
-            </div>
+            <div class="ink-field"><input v-model="submitForm.image" placeholder="http://..."/></div>
           </el-form-item>
           <el-form-item label="提交材料 (逗号分隔)">
-            <div class="ink-field">
-              <input v-model="submitForm.materialsRaw" placeholder="例如：妖丹, 狐皮" />
-            </div>
+            <div class="ink-field"><input v-model="submitForm.materialsRaw" placeholder="例如：妖丹, 狐皮"/></div>
           </el-form-item>
         </el-form>
       </div>
-
       <template #footer>
         <div class="paper-footer">
           <button class="ink-btn cancel" @click="submitDialogVisible = false">暂存</button>
@@ -215,10 +258,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { getUserInfo, getMyMissions, getMyTransactions } from '../api/user'
-import { submitMission, auditMission } from '../api/mission'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import {ref, onMounted, watch, nextTick, computed} from 'vue'
+import {getUserInfo, getMyMissions, getMyTransactions} from '../api/user'
+import {submitMission, auditMission} from '../api/mission'
+import {ElMessage, ElMessageBox} from 'element-plus'
+import * as echarts from 'echarts'
 
 const myUserId = Number(localStorage.getItem('lwg_user_id'))
 const userInfo = ref({})
@@ -227,105 +271,199 @@ const activeTab = ref('published')
 const publishedList = ref([])
 const acceptedList = ref([])
 const transactionList = ref([])
+const assetFilter = ref('all') // 筛选器状态
 
+const barChartRef = ref(null)
+const pieChartRef = ref(null)
+let barChart = null
+let pieChart = null
+
+const chartStats = ref({totalIn: 0, totalOut: 0, net: 0})
 const submitDialogVisible = ref(false)
-const submitForm = ref({ missionId: null, desc: '', image: '', materialsRaw: '' })
+const submitForm = ref({missionId: null, desc: '', image: '', materialsRaw: ''})
 
 // 辅助函数
-const formatDate = (dateStr) => {
-  if (!dateStr) return ''
-  return dateStr.replace('T', ' ').substring(0, 19)
-}
+const formatDate = (dateStr) => dateStr ? dateStr.replace('T', ' ').substring(0, 19) : ''
+const formatDateSimple = (dateStr) => dateStr ? dateStr.split('T')[0] : '未知'
+const getStatusText = (val) => ({0: '待接单', 1: '进行中', 2: '待验收', 3: '已完成', 4: '已取消'}[val] || '--')
+//境界:1-炼气,2-筑基,3-金丹,4-元婴,5-化神,6-炼虚,7-合体,8-大乘,9-渡劫
+const getRealmText = (val) => ({
+  1: '炼气期', 2: '筑基期', 3: '金丹期',
+  4: '元婴期', 5: '化神期', 6: '炼虚期',
+  7: '合体期', 8: '大乘期', 9: '渡劫期'
+}[val] || '?未知境界?')
 
-const formatDateSimple = (dateStr) => {
-  if (!dateStr) return '未知'
-  return dateStr.split('T')[0]
-}
-
-const getStatusText = (val) => ({ 0: '待接单', 1: '进行中', 2: '待验收', 3: '已完成', 4: '已取消' }[val] || '--')
-
-// 境界映射
-const getRealmText = (val) => {
+//动账类型: 1-发布悬赏, 2-结算支出, 3-任务收益, 4-充值, 5-提现
+const getTransactionTypeText = (type) => {
   const map = {
-    1: '炼气期', 2: '筑基期', 3: '金丹期', 4: '元婴期',
-    5: '化神期', 6: '炼虚期', 7: '合体期', 8: '大乘期', 9: '渡劫期'
+    1: '发布悬赏', 2: '结算支出', 3: '任务收益',
+    4: '充值', 5: '提现'
   }
-  return map[val] || '凡人'
+  return map[type] || '其他'
+}
+const getTransactionTypeTag = (type) => {
+  // 收入类用 success, 支出类用 danger, 押金类用 primary
+  if ([4, 3, 5].includes(type)) return 'success'
+  if ([1, 2].includes(type)) return 'danger'
+  return 'info'
 }
 
-// 加载数据
+// 过滤后的列表
+const filteredTransactionList = computed(() => {
+  if (assetFilter.value === 'all') return transactionList.value
+  return transactionList.value.filter(item => item.assetType == assetFilter.value)
+})
+
 const loadUserInfo = async () => {
-  if(!myUserId) return
-  const res = await getUserInfo(myUserId)
-  userInfo.value = res || {}
+  if (myUserId) userInfo.value = await getUserInfo(myUserId) || {}
 }
-
-const loadPublished = async () => {
-  const res = await getMyMissions({userId: myUserId, type: 1})
-  publishedList.value = res || []
-}
-
-const loadAccepted = async () => {
-  const res = await getMyMissions({userId: myUserId, type: 2})
-  acceptedList.value = res || []
-}
+const loadPublished = async () => publishedList.value = await getMyMissions({userId: myUserId, type: 1}) || []
+const loadAccepted = async () => acceptedList.value = await getMyMissions({userId: myUserId, type: 2}) || []
 
 const loadTransactions = async () => {
   const res = await getMyTransactions(myUserId)
   transactionList.value = res || []
+  nextTick(() => renderCharts())
+}
+
+// 🌟 图表逻辑：严格区分正负 🌟
+const renderCharts = () => {
+  if (!transactionList.value.length) return
+
+  // 1. 数据统计 (基于全部数据，或者你可以改为基于 filteredTransactionList)
+  // 这里我们展示全部数据的概览
+  let totalIncome = 0
+  let totalExpense = 0
+  const dayMap = new Map() // 日期 -> {in: 0, out: 0}
+  const typeMap = new Map()
+
+  transactionList.value.forEach(item => {
+    // 绝对收入：大于0的都算
+    if (item.amount > 0) totalIncome += item.amount
+    // 绝对支出：小于0的都算
+    else totalExpense += item.amount
+
+    // 按天归集
+    const date = item.createTime.split('T')[0]
+    if (!dayMap.has(date)) dayMap.set(date, {in: 0, out: 0})
+    const dayData = dayMap.get(date)
+
+    if (item.amount > 0) dayData.in += item.amount
+    else dayData.out += Math.abs(item.amount) // 存绝对值用于画图长度
+
+    // 按类型归集
+    const typeName = getTransactionTypeText(item.type || 99)
+    typeMap.set(typeName, (typeMap.get(typeName) || 0) + Math.abs(item.amount))
+  })
+
+  chartStats.value = {
+    totalIn: totalIncome,
+    totalOut: totalExpense,
+    net: totalIncome + totalExpense
+  }
+
+  // 2. 柱状图
+  const sortedDates = Array.from(dayMap.keys()).sort()
+  const inData = sortedDates.map(d => dayMap.get(d).in)
+  const outData = sortedDates.map(d => dayMap.get(d).out)
+
+  if (barChartRef.value) {
+    if (barChart) barChart.dispose()
+    barChart = echarts.init(barChartRef.value)
+    barChart.setOption({
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {type: 'shadow'},
+        formatter: (params) => {
+          // 自定义提示框
+          let res = params[0].name + '<br/>'
+          params.forEach(item => {
+            const val = item.value
+            const color = item.color
+            const sign = item.seriesName.includes('耗散') ? '-' : '+'
+            res += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${color};"></span>`
+            res += `${item.seriesName}: ${sign}${val}<br/>`
+          })
+          return res
+        }
+      },
+      legend: {bottom: 0},
+      grid: {top: '15%', bottom: '10%', left: '10%', right: '5%'},
+      xAxis: {type: 'category', data: sortedDates, axisLine: {lineStyle: {color: '#ccc'}}},
+      yAxis: {type: 'value', splitLine: {lineStyle: {type: 'dashed', color: '#eee'}}},
+      series: [
+        {name: '纳气 (进账)', type: 'bar', data: inData, itemStyle: {color: '#52c41a'}, barMaxWidth: 20},
+        {name: '耗散 (出账)', type: 'bar', data: outData, itemStyle: {color: '#ff4d4f'}, barMaxWidth: 20}
+      ]
+    })
+  }
+
+  // 3. 饼图
+  const pieData = Array.from(typeMap.entries()).map(([name, value]) => ({name, value}))
+  if (pieChartRef.value) {
+    if (pieChart) pieChart.dispose()
+    pieChart = echarts.init(pieChartRef.value)
+    pieChart.setOption({
+      tooltip: {trigger: 'item'},
+      legend: {bottom: 0, icon: 'circle', type: 'scroll'}, // 加上 type: scroll 防止类型太多溢出
+      series: [{
+        name: '交易量',
+        type: 'pie',
+        radius: ['40%', '65%'],
+        itemStyle: {borderRadius: 5, borderColor: '#fff', borderWidth: 2},
+        data: pieData,
+        label: {show: false}
+      }]
+    })
+  }
 }
 
 watch(activeTab, (val) => {
   if (val === 'published') loadPublished()
   if (val === 'accepted') loadAccepted()
   if (val === 'transactions') loadTransactions()
-}, { immediate: true })
+}, {immediate: true})
+
+window.addEventListener('resize', () => {
+  barChart && barChart.resize();
+  pieChart && pieChart.resize()
+})
 
 const openSubmitDialog = (row) => {
-  submitForm.value = { missionId: row.id, desc: '', image: '', materialsRaw: '' }
+  submitForm.value = {missionId: row.id, desc: '', image: '', materialsRaw: ''};
   submitDialogVisible.value = true
 }
-
 const handleSubmit = async () => {
-  const payload = {
-    missionId: submitForm.value.missionId,
-    userId: myUserId,
-    proofData: JSON.stringify({
-      desc: submitForm.value.desc,
-      image: submitForm.value.image,
-      materials: submitForm.value.materialsRaw
-    })
-  }
   try {
-    await submitMission(payload)
-    ElMessage.success('复命文书已呈递！')
-    submitDialogVisible.value = false
-    loadAccepted()
-  } catch (error) {}
-}
-
-const handleAudit = (row, isPass) => {
-  ElMessageBox.prompt(
-      isPass ? '确认验收通过吗？请输入评价：' : '确认驳回吗？请输入理由：',
-      isPass ? '验收确认' : '驳回确认',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        inputValue: isPass ? '道友法力无边，佩服！' : '凭证模糊，请重新提交',
-      }
-  ).then(async ({ value }) => {
-    try {
-      await auditMission({
-        missionId: row.id,
-        userId: myUserId,
-        pass: isPass,
-        remark: value
+    await submitMission({
+      missionId: submitForm.value.missionId,
+      userId: myUserId,
+      proofData: JSON.stringify({
+        desc: submitForm.value.desc,
+        image: submitForm.value.image,
+        materials: submitForm.value.materialsRaw
       })
-      ElMessage.success(isPass ? '已验收，赏金已发放！' : '已驳回，任务重置。')
-      loadPublished()
+    });
+    ElMessage.success('已呈递！');
+    submitDialogVisible.value = false;
+    loadAccepted()
+  } catch (e) {
+  }
+}
+const handleAudit = (row, isPass) => {
+  ElMessageBox.prompt(isPass ? '确认验收？' : '确认驳回？', '批复', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消'
+  }).then(async ({value}) => {
+    try {
+      await auditMission({missionId: row.id, userId: myUserId, pass: isPass, remark: value});
+      ElMessage.success('批复已下达');
+      loadPublished();
       loadUserInfo()
-    } catch (error) {}
-  }).catch(() => {})
+    } catch (e) {
+    }
+  }).catch(() => {
+  })
 }
 
 onMounted(() => {
@@ -337,23 +475,28 @@ onMounted(() => {
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&display=swap');
 
 .dashboard-container {
-  width: 100%; min-height: 100vh; background-color: #f0f2f5;
-  padding: 30px 20px; box-sizing: border-box;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
 }
 
-/* ⚠️ 核心修复：两张卡片使用完全一致的宽带和盒模型 */
 .user-card, .content-card {
   width: 100%;
-  max-width: 1200px; /* 统一对齐大厅宽度 */
+  max-width: 1200px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-  box-sizing: border-box; /* 👈 关键：把padding算在宽度内，防止撑开 */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
   border: 1px solid #e0e0e0;
 }
 
-/* --- 1. 顶部身份铭牌 (Flex布局) --- */
+/* User Card */
 .user-card {
   display: flex;
   align-items: center;
@@ -361,99 +504,578 @@ onMounted(() => {
   padding: 0 40px;
 }
 
-.left-panel { flex: 4; display: flex; align-items: center; gap: 20px; }
-.avatar-container { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.avatar-border { padding: 3px; border: 2px solid #d7ccc8; border-radius: 50%; }
-.status-pill { border-radius: 10px; height: 20px; line-height: 18px; padding: 0 8px; font-size: 12px; }
-
-.info-container { display: flex; flex-direction: column; gap: 6px; }
-.name-box { display: flex; align-items: center; gap: 10px; }
-.username { font-family: 'Noto Serif SC', serif; font-size: 24px; color: #3e2723; font-weight: bold; }
-.uid-tag { background: #f5f5f5; color: #999; font-size: 12px; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-.tags-box { display: flex; gap: 8px; }
-.realm-badge { background: #faad14; color: #fff; font-size: 12px; padding: 1px 8px; border-radius: 2px; }
-.role-badge { border: 1px solid #8b3a3a; color: #8b3a3a; font-size: 12px; padding: 0 8px; border-radius: 2px; }
-.time-box { font-size: 12px; color: #888; margin-top: 4px; }
-
-.vertical-divider { width: 1px; height: 60px; background: #eee; margin: 0 30px; }
-
-.middle-panel { flex: 4; display: flex; justify-content: space-around; align-items: center; }
-.data-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-.data-label { font-size: 13px; color: #888; display: flex; align-items: center; gap: 4px; }
-.help-circle { display: inline-block; width: 14px; height: 14px; background: #eee; color: #999; border-radius: 50%; text-align: center; line-height: 14px; font-size: 10px; cursor: help; font-style: normal; }
-.data-value { font-size: 20px; font-weight: bold; color: #333; }
-.data-value.money { color: #cf1322; font-family: monospace; }
-.data-value.frozen { color: #69c0ff; font-family: monospace; font-size: 16px; margin-top: 3px; }
-
-.right-panel { flex: 2; display: flex; justify-content: flex-end; }
-
-/* --- 2. 内容卡片 --- */
-.content-card {
-  padding: 30px 40px;
-  min-height: 500px;
+.left-panel {
+  flex: 4;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-right: 1px solid transparent;
 }
 
-/* Tabs */
-.tabs-bar { display: flex; gap: 30px; margin-bottom: 25px; border-bottom: 2px solid #f0f0f0; }
-.tab-item { padding: 10px 5px; cursor: pointer; font-size: 15px; color: #666; font-weight: 500; position: relative; transition: all 0.3s; }
-.tab-item:hover { color: #8b3a3a; }
-.tab-item.active { color: #8b3a3a; font-weight: bold; }
-.tab-item.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background-color: #8b3a3a; }
+.avatar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
 
-/* 表格通用 */
-.elegant-table { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-.mission-title { font-weight: 500; color: #333; }
-.reward-text { color: #cf1322; font-weight: bold; }
-.disabled-text { color: #ccc; font-size: 12px; }
+.avatar-border {
+  padding: 3px;
+  border: 2px solid #d7ccc8;
+  border-radius: 50%;
+}
 
-/* 状态标签 */
-.status-badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
-.status-0 { background: #e6fffb; color: #13c2c2; }
-.status-1 { background: #fff7e6; color: #fa8c16; }
-.status-2 { background: #e6f7ff; color: #1890ff; }
-.status-3 { background: #f6ffed; color: #52c41a; }
-.status-4 { background: #fff1f0; color: #f5222d; }
+.status-pill {
+  border-radius: 10px;
+  height: 20px;
+  line-height: 18px;
+  padding: 0 8px;
+  font-size: 12px;
+}
 
-/* 审核按钮组 */
-.audit-group { display: flex; gap: 8px; justify-content: center; }
-.small-outline-btn { background: transparent; border: 1px solid #ccc; padding: 2px 8px; font-size: 12px; border-radius: 2px; cursor: pointer; transition: all 0.2s; }
-.small-outline-btn.pass { border-color: #52c41a; color: #52c41a; }
-.small-outline-btn.pass:hover { background: #52c41a; color: white; }
-.small-outline-btn.reject { border-color: #ff4d4f; color: #ff4d4f; }
-.small-outline-btn.reject:hover { background: #ff4d4f; color: white; }
+.info-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
 
-/* 账本样式 */
-.type-tag { font-size: 12px; padding: 2px 8px; border-radius: 4px; }
-.type-tag.income { background: #f6ffed; color: #52c41a; border: 1px solid #b7eb8f; }
-.type-tag.expense { background: #fff1f0; color: #f5222d; border: 1px solid #ffa39e; }
-.money-font { font-family: monospace; font-weight: bold; font-size: 15px; }
+.name-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-/* 按钮 */
-.primary-btn { background-color: #8b3a3a; color: #fff; border: none; padding: 8px 24px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.2s; white-space: nowrap; }
-.primary-btn:hover { background-color: #a64d40; }
-.primary-btn.small { padding: 4px 12px; font-size: 12px; }
+.username {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  color: #3e2723;
+  font-weight: bold;
+}
 
-/* 宣纸弹窗复用 */
-:deep(.paper-dialog) { background-color: #fdfbf7; border-radius: 2px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #efeadd; }
-:deep(.paper-dialog .el-dialog__header) { padding: 0; margin: 0; }
-:deep(.paper-dialog .el-dialog__body) { padding: 0 40px 30px; }
-:deep(.paper-dialog .el-dialog__footer) { padding: 20px 40px 30px; background: transparent; }
-.paper-header { text-align: center; padding: 30px 0 20px; position: relative; border-bottom: 1px dashed #dcd0b7; margin-bottom: 20px; }
-.paper-title { font-family: 'Noto Serif SC', serif; font-size: 24px; font-weight: bold; letter-spacing: 5px; color: #3e2723; }
-.close-icon { position: absolute; top: 10px; right: 20px; background: transparent; border: none; font-size: 24px; color: #a1887f; cursor: pointer; }
+.uid-tag {
+  background: #f5f5f5;
+  color: #999;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
 
-/* 表单样式 */
-.ink-field { border-bottom: 1px solid #d7ccc8; padding: 8px 0; transition: all 0.3s; }
-.ink-field input { width: 100%; border: none; background: transparent; outline: none; font-size: 15px; color: #333; }
-.ink-field:focus-within { border-bottom-color: #8b3a3a; }
-.ink-field.disabled { color: #999; border-bottom-style: dashed; }
-.ink-textarea-wrapper { background: rgba(255,255,255,0.5); border: 1px solid #d7ccc8; border-radius: 4px; padding: 10px; }
-.ink-textarea-wrapper:focus-within { border-color: #8b3a3a; background: #fff; }
-.ink-textarea { width: 100%; border: none; background: transparent; outline: none; resize: none; font-size: 14px; line-height: 1.6; }
+.tags-box {
+  display: flex;
+  gap: 8px;
+}
 
-.paper-footer { display: flex; justify-content: flex-end; gap: 15px; }
-.ink-btn { border: none; cursor: pointer; padding: 8px 24px; border-radius: 2px; transition: all 0.3s; }
-.ink-btn.cancel { background: transparent; color: #8d6e63; }
-.ink-btn.submit { background: #3e2723; color: #fff; }
-.ink-btn.submit:hover { background: #5d4037; }
+.realm-badge {
+  background: #faad14;
+  color: #fff;
+  font-size: 12px;
+  padding: 1px 8px;
+  border-radius: 2px;
+}
+
+.role-badge {
+  border: 1px solid #8b3a3a;
+  color: #8b3a3a;
+  font-size: 12px;
+  padding: 0 8px;
+  border-radius: 2px;
+}
+
+.time-box {
+  font-size: 12px;
+  color: #888;
+  margin-top: 4px;
+}
+
+.vertical-divider {
+  width: 1px;
+  height: 60px;
+  background: #eee;
+  margin: 0 30px;
+}
+
+.middle-panel {
+  flex: 4;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.data-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.data-label {
+  font-size: 13px;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.help-circle {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: #eee;
+  color: #999;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 14px;
+  font-size: 10px;
+  cursor: help;
+  font-style: normal;
+}
+
+.data-value {
+  font-size: 20px;
+  font-weight: bold;
+  color: #333;
+}
+
+.data-value.money {
+  color: #cf1322;
+  font-family: monospace;
+}
+
+.data-value.frozen {
+  color: #69c0ff;
+  font-family: monospace;
+  font-size: 16px;
+  margin-top: 3px;
+}
+
+.right-panel {
+  flex: 2;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Content Card */
+.content-card {
+  padding: 30px 40px;
+  min-height: 600px;
+}
+
+.tabs-bar {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 25px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.tab-item {
+  padding: 10px 5px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #666;
+  font-weight: 500;
+  position: relative;
+  transition: all 0.3s;
+}
+
+.tab-item:hover {
+  color: #8b3a3a;
+}
+
+.tab-item.active {
+  color: #8b3a3a;
+  font-weight: bold;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #8b3a3a;
+}
+
+/* 🆕 灵石对账看板样式 */
+.finance-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.finance-summary {
+  display: flex;
+  gap: 20px;
+}
+
+.summary-card {
+  flex: 1;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: all 0.2s;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.summary-card.income {
+  background: #f6ffed;
+  border-color: #b7eb8f;
+}
+
+.summary-card.expense {
+  background: #fff1f0;
+  border-color: #ffa39e;
+}
+
+.summary-card.balance {
+  background: #e6f7ff;
+  border-color: #91d5ff;
+}
+
+.card-icon {
+  font-size: 32px;
+}
+
+.card-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-title {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+.card-num {
+  font-size: 24px;
+  font-weight: bold;
+  font-family: monospace;
+}
+
+.card-num.money {
+  color: #52c41a;
+}
+
+.card-num.expense-num {
+  color: #cf1322;
+}
+
+/* 图表区 */
+.chart-row {
+  display: flex;
+  gap: 20px;
+  height: 350px;
+}
+
+.chart-container {
+  flex: 1;
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  padding: 15px;
+  background: #fdfdfd;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-title {
+  font-weight: bold;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 10px;
+  border-left: 3px solid #8b3a3a;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.help-circle.small {
+  width: 14px;
+  height: 14px;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.echarts-box {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+/* 列表区 */
+.table-section {
+  margin-top: 20px;
+}
+
+.section-header {
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 15px;
+  color: #5d4037;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mono-font {
+  font-family: monospace;
+  color: #666;
+  font-size: 13px;
+}
+
+.money-font {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.balance-snapshot {
+  font-family: monospace;
+  color: #333;
+  font-weight: bold;
+}
+
+/* 通用样式 */
+.elegant-table {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.mission-title {
+  font-weight: 500;
+  color: #333;
+}
+
+.reward-text {
+  color: #cf1322;
+  font-weight: bold;
+}
+
+.disabled-text {
+  color: #ccc;
+  font-size: 12px;
+}
+
+.primary-btn {
+  background-color: #8b3a3a;
+  color: #fff;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.primary-btn:hover {
+  background-color: #a64d40;
+}
+
+.primary-btn.small {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.status-badge {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.status-0 {
+  background: #e6fffb;
+  color: #13c2c2;
+}
+
+.status-1 {
+  background: #fff7e6;
+  color: #fa8c16;
+}
+
+.status-2 {
+  background: #e6f7ff;
+  color: #1890ff;
+}
+
+.status-3 {
+  background: #f6ffed;
+  color: #52c41a;
+}
+
+.status-4 {
+  background: #fff1f0;
+  color: #f5222d;
+}
+
+.audit-group {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.small-outline-btn {
+  background: transparent;
+  border: 1px solid #ccc;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.small-outline-btn.pass {
+  border-color: #52c41a;
+  color: #52c41a;
+}
+
+.small-outline-btn.pass:hover {
+  background: #52c41a;
+  color: white;
+}
+
+.small-outline-btn.reject {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+
+.small-outline-btn.reject:hover {
+  background: #ff4d4f;
+  color: white;
+}
+
+:deep(.paper-dialog) {
+  background-color: #fdfbf7;
+  border-radius: 2px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #efeadd;
+}
+
+:deep(.paper-dialog .el-dialog__header) {
+  padding: 0;
+  margin: 0;
+}
+
+:deep(.paper-dialog .el-dialog__body) {
+  padding: 0 40px 30px;
+}
+
+:deep(.paper-dialog .el-dialog__footer) {
+  padding: 20px 40px 30px;
+  background: transparent;
+}
+
+.paper-header {
+  text-align: center;
+  padding: 30px 0 20px;
+  position: relative;
+  border-bottom: 1px dashed #dcd0b7;
+  margin-bottom: 20px;
+}
+
+.paper-title {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 24px;
+  font-weight: bold;
+  letter-spacing: 5px;
+  color: #3e2723;
+}
+
+.close-icon {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #a1887f;
+  cursor: pointer;
+}
+
+.ink-field {
+  border-bottom: 1px solid #d7ccc8;
+  padding: 8px 0;
+  transition: all 0.3s;
+}
+
+.ink-field input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 15px;
+  color: #333;
+}
+
+.ink-field:focus-within {
+  border-bottom-color: #8b3a3a;
+}
+
+.ink-field.disabled {
+  color: #999;
+  border-bottom-style: dashed;
+}
+
+.ink-textarea-wrapper {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid #d7ccc8;
+  border-radius: 4px;
+  padding: 10px;
+}
+
+.ink-textarea-wrapper:focus-within {
+  border-color: #8b3a3a;
+  background: #fff;
+}
+
+.ink-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.paper-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.ink-btn {
+  border: none;
+  cursor: pointer;
+  padding: 8px 24px;
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.ink-btn.cancel {
+  background: transparent;
+  color: #8d6e63;
+}
+
+.ink-btn.submit {
+  background: #3e2723;
+  color: #fff;
+}
+
+.ink-btn.submit:hover {
+  background: #5d4037;
+}
 </style>
