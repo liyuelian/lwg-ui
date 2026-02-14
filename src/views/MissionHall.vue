@@ -137,9 +137,10 @@
             <div class="meta-item">
               <label>任务类型</label>
               <el-select v-model="publishForm.missionType" placeholder="请选择" class="ink-select" popper-class="ink-popper">
-                <el-option label="讨伐" :value="1" />
+                <el-option label="降妖" :value="1" />
                 <el-option label="采集" :value="2" />
                 <el-option label="护送" :value="3" />
+                <el-option label="其他" :value="4" />
               </el-select>
             </div>
             <div class="meta-item">
@@ -148,12 +149,16 @@
             </div>
             <div class="meta-item">
               <label>最低境界</label>
-              <el-select v-model="publishForm.minRealm" placeholder="无限制" class="ink-select" popper-class="ink-popper">
-                <el-option label="无限制" :value="0" />
+              <el-select v-model="publishForm.minRealm" placeholder="炼气期" class="ink-select" popper-class="ink-popper">
                 <el-option label="炼气期" :value="1" />
                 <el-option label="筑基期" :value="2" />
                 <el-option label="金丹期" :value="3" />
                 <el-option label="元婴期" :value="4" />
+                <el-option label="化神期" :value="5" />
+                <el-option label="炼虚期" :value="6" />
+                <el-option label="合体期" :value="7" />
+                <el-option label="大乘期" :value="8" />
+                <el-option label="渡劫期" :value="9" />
               </el-select>
             </div>
             <div class="meta-item">
@@ -199,7 +204,7 @@
             <el-descriptions-item label="难度等级">
               <span :class="['diff-tag', `diff-${currentMission.difficulty}`]">{{ difficultyText(currentMission.difficulty) }}</span>
             </el-descriptions-item>
-            <el-descriptions-item label="最低境界">{{ realmText(currentMission.minRealm) || '不限' }}</el-descriptions-item>
+            <el-descriptions-item label="最低境界">{{ realmText(currentMission.minRealm)}}</el-descriptions-item>
             <el-descriptions-item label="赏金">
               <span class="reward-text">{{ currentMission.reward }} 灵石</span>
             </el-descriptions-item>
@@ -291,10 +296,13 @@ const handleLogout = () => {
 }
 
 // 字典翻译
-const difficultyText = (val) => ({ 1: '简单', 2: '普通', 3: '困难',4:'地狱' }[val] || '未知')
-const getStatusText = (val) => ({ 0: '待接单', 1: '修仙中', 2: '待结算', 3: '已完成', 4: '已取消' }[val] || '--')
-const realmText = (val) => ({ 0: '无限制', 1: '炼气期', 2: '筑基期', 3: '金丹期', 4: '元婴期' }[val])
-const typeText = (val) => ({ 1: '讨伐', 2: '采集', 3: '护送' }[val] || '普通')
+const difficultyText = (val) => ({1: '简单', 2: '普通', 3: '困难', 4: '地狱'}[val] || '未知')
+const getStatusText = (val) => ({0: '待接单', 1: '修仙中', 2: '待结算', 3: '已完成', 4: '已取消'}[val] || '--')
+const realmText = (val) => ({
+  1: '炼气期', 2: '筑基期', 3: '金丹期', 4: '元婴期', 5: '元婴期',
+  6: '化神期', 7: '炼虚期', 8: '合体期', 9: '渡劫期',
+}[val])
+const typeText = (val) => ({1: '降妖', 2: '采集', 3: '护送', 4: '其他'}[val] || '未知')
 
 const loadData = async () => {
   loading.value = true
