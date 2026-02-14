@@ -26,27 +26,27 @@
         </div>
       </div>
       <div class="vertical-divider"></div>
+
       <div class="middle-panel">
         <div class="data-item">
-        <span class="data-label">
-          可用灵石 (Balance)
-          <div class="recharge-btn-ink" @click="openRechargeDialog">
-            <span class="ink-seal">纳</span>
-            <span class="ink-text">灵脉灌注</span>
-          </div>
-        </span>
+          <span class="data-label">可用灵石 (Balance)</span>
           <span class="data-value money">{{ userInfo.balance || 0 }} 💎</span>
         </div>
         <div class="data-item">
             <span class="data-label">
               冻结押金 (Frozen)
-              <el-tooltip content="任务保证金，完结后扣除或退回" placement="top"><i
-                  class="help-circle">?</i></el-tooltip>
+              <el-tooltip content="任务保证金，完结后扣除或退回" placement="top"><i class="help-circle">?</i></el-tooltip>
             </span>
           <span class="data-value frozen">{{ userInfo.frozenBalance || 0 }} ❄️</span>
         </div>
       </div>
+
       <div class="right-panel">
+        <div class="recharge-btn-ink" @click="openRechargeDialog">
+          <span class="ink-seal">纳</span>
+          <span class="ink-text">灵脉灌注</span>
+        </div>
+
         <button class="primary-btn" @click="$router.push('/mission-hall')">前往大厅</button>
       </div>
     </div>
@@ -771,12 +771,81 @@ onMounted(() => {
   margin-top: 3px;
 }
 
+/* 🆕 右侧面板布局优化 */
 .right-panel {
-  flex: 2;
+  flex: 3; /* 稍微给宽一点 */
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  gap: 15px; /* 两个按钮之间的间距 */
 }
 
+/* 🖌️ 水墨雅韵 - 充值按钮 (新版) */
+.recharge-btn-ink {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 6px 20px; /* 尺寸适中 */
+  background-color: #fdfbf7; /* 米白宣纸底色 */
+
+  /* 双线装裱边框 */
+  border: 1px solid #5d4037; /* 边框改浅一点的墨褐色 */
+  outline: 1px solid #5d4037;
+  outline-offset: 2px;
+  border-radius: 2px;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 36px; /* 固定高度，与大厅按钮对齐 */
+  box-sizing: border-box;
+}
+
+/* 印章 */
+.ink-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background-color: #a63434; /* 朱砂红 */
+  color: #fff;
+  font-size: 12px;
+  border-radius: 3px;
+  box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+  transform: rotate(-5deg);
+  transition: transform 0.3s ease;
+}
+
+/* 文字 */
+.ink-text {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #5d4037; /* 墨褐色，比纯黑柔和 */
+  letter-spacing: 2px;
+  margin-right: -2px;
+  transition: color 0.3s ease;
+}
+
+/* ✨ 悬停效果：朱砂红韵 (不再变黑) */
+.recharge-btn-ink:hover {
+  background-color: #fff0f0; /* 极淡的红色背景 */
+  border-color: #a63434;     /* 边框变朱红 */
+  outline-color: #a63434;    /* 外框变朱红 */
+}
+
+.recharge-btn-ink:hover .ink-text {
+  color: #a63434; /* 文字变朱红 */
+}
+
+.recharge-btn-ink:hover .ink-seal {
+  transform: rotate(0deg) scale(1.1); /* 印章扶正 */
+}
+
+.recharge-btn-ink:active {
+  transform: translateY(1px);
+}
 
 .plus-icon {
   font-weight: bold;
@@ -1212,81 +1281,82 @@ onMounted(() => {
 .ink-btn.submit:hover {
   background: #5d4037;
 }
-/* 🖌️ 水墨雅韵 - 充值按钮 */
-.recharge-btn-ink {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 15px;
 
-  /* 尺寸与留白 */
-  padding: 8px 24px; /* 加大尺寸，更显大气 */
-  background-color: #fdfbf7; /* 米白宣纸底色 */
-
-  /* 🖼️ 核心：双线装裱边框 */
-  border: 1px solid #2c2c2c; /* 内框：墨黑 */
-  outline: 1px solid #2c2c2c; /* 外框：墨黑 */
-  outline-offset: 3px; /* 留出空隙 */
-  border-radius: 2px;  /* 微圆角，不圆滑 */
-
-  cursor: pointer;
-  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  position: relative;
+/* 🛠️ 充值弹窗样式修复 */
+.recharge-content {
+  padding: 10px 10px;
 }
 
-/* 🔴 印章设计 (图标) */
-.ink-seal {
-  display: inline-flex;
+.recharge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* 强制分为3列 */
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.recharge-item {
+  display: flex;
+  flex-direction: column; /* 垂直排列图标和文字 */
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
 
-  background-color: #a63434; /* 朱砂红 */
-  color: #fff;
-  font-size: 14px;
-  font-family: 'Noto Serif SC', serif; /* 宋体/衬线 */
-  border-radius: 4px; /* 模拟印章形状 */
-  box-shadow: inset 0 0 4px rgba(0,0,0,0.2); /* 内阴影，模拟印泥质感 */
-
-  /* 旋转一点点，模拟手工盖章的不规则感 */
-  transform: rotate(-5deg);
-  transition: transform 0.4s ease;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 15px 0;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+  height: 100px; /* 固定高度，防止塌陷 */
 }
 
-/* 📜 文字设计 */
-.ink-text {
-  font-family: 'Noto Serif SC', 'Songti SC', serif; /* 强制宋体 */
-  font-size: 15px;
-  font-weight: 600;
-  color: #2c2c2c; /* 墨色 */
-  letter-spacing: 4px; /* 宽字距，显得雅致 */
-  margin-right: -4px; /* 修正字距带来的右侧偏差 */
+.recharge-item:hover {
+  border-color: #a63434;
+  background-color: #fffbf7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(166, 52, 52, 0.1);
 }
 
-/* ✨ 悬停效果：墨韵晕染 */
-.recharge-btn-ink:hover {
-  background-color: #2c2c2c; /* 背景变黑 */
-  border-color: #2c2c2c;
-  outline-color: #a63434; /* 外框变红，呼应印章 */
-  outline-offset: 5px; /* 扩散 */
-}
-
-/* 悬停时文字反白 */
-.recharge-btn-ink:hover .ink-text {
-  color: #fdfbf7;
-}
-
-/* 悬停时印章扶正并放大 */
-.recharge-btn-ink:hover .ink-seal {
-  transform: rotate(0deg) scale(1.1);
-  background-color: #fdfbf7; /* 印章反色 */
+.recharge-item.active {
+  border-color: #a63434;
+  background: #fff1f0;
   color: #a63434;
 }
 
-/* 点击时的反馈 */
-.recharge-btn-ink:active {
-  transform: scale(0.98);
-  outline-offset: 2px;
+.gem-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+.gem-amount {
+  font-weight: bold;
+  color: #333;
+  font-size: 16px;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.rmb-price {
+  font-size: 12px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 自定义金额输入框修复 */
+.custom-amount-box {
+  margin-top: 10px;
+  padding: 0 10px;
+}
+.reward-field {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+  padding: 10px;
+  border-radius: 4px;
+}
+.reward-field input {
+  width: 120px;
+  text-align: center;
+  background: transparent;
+  font-family: monospace;
 }
 </style>
