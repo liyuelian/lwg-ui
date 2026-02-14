@@ -35,7 +35,8 @@
         <div class="data-item">
             <span class="data-label">
               冻结押金 (Frozen)
-              <el-tooltip content="任务保证金，完结后扣除或退回" placement="top"><i class="help-circle">?</i></el-tooltip>
+              <el-tooltip content="任务保证金，完结后扣除或退回" placement="top"><i
+                  class="help-circle">?</i></el-tooltip>
             </span>
           <span class="data-value frozen">{{ userInfo.frozenBalance || 0 }} ❄️</span>
         </div>
@@ -421,9 +422,15 @@ const renderCharts = () => {
 
     // 2. 饼图逻辑 (剔除内部流转产生的视觉干扰)
     let typeName = getTransactionTypeText(type)
-    if (type === 1) typeName = '资金冻结(暂存)' // 改个名，让用户知道钱没丢
-
-    typeMap.set(typeName, (typeMap.get(typeName) || 0) + absAmount)
+    if (type === 1) {
+      typeName = '资金冻结(暂存)'
+      if (amount < 0) {
+        typeMap.set(typeName, (typeMap.get(typeName) || 0) + absAmount)
+      }
+    } else {
+      // 其他类型（充值、支出、收益）正常累加绝对值
+      typeMap.set(typeName, (typeMap.get(typeName) || 0) + absAmount)
+    }
 
     // 3. 柱状图逻辑 (按天归集，分类展示)
     const date = item.createTime.split('T')[0]
@@ -812,7 +819,7 @@ onMounted(() => {
   color: #fff;
   font-size: 12px;
   border-radius: 3px;
-  box-shadow: inset 0 0 2px rgba(0,0,0,0.1);
+  box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.1);
   transform: rotate(-5deg);
   transition: transform 0.3s ease;
 }
@@ -831,8 +838,8 @@ onMounted(() => {
 /* ✨ 悬停效果：朱砂红韵 (不再变黑) */
 .recharge-btn-ink:hover {
   background-color: #fff0f0; /* 极淡的红色背景 */
-  border-color: #a63434;     /* 边框变朱红 */
-  outline-color: #a63434;    /* 外框变朱红 */
+  border-color: #a63434; /* 边框变朱红 */
+  outline-color: #a63434; /* 外框变朱红 */
 }
 
 .recharge-btn-ink:hover .ink-text {
@@ -1345,6 +1352,7 @@ onMounted(() => {
   margin-top: 10px;
   padding: 0 10px;
 }
+
 .reward-field {
   display: flex;
   align-items: center;
@@ -1353,6 +1361,7 @@ onMounted(() => {
   padding: 10px;
   border-radius: 4px;
 }
+
 .reward-field input {
   width: 120px;
   text-align: center;
