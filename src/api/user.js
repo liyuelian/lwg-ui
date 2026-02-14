@@ -26,3 +26,11 @@ export function getMyTransactions(userId) {
         params: {userId}
     })
 }
+
+export function rechargeBalance(data) {
+    return request({
+        url: '/user/recharge',
+        method: 'post',
+        data: data // { userId, amount }
+    })
+}
