@@ -27,10 +27,38 @@ export function getMyTransactions(userId) {
     })
 }
 
+// 4.充值接口
 export function rechargeBalance(data) {
     return request({
         url: '/user/recharge',
         method: 'post',
         data: data // { userId, amount }
+    })
+}
+
+// 5. 获取财务概览 (卡片数据)
+export function getFinanceOverview(userId) {
+    return request({
+        url: '/user/finance/overview',
+        method: 'get',
+        params: { userId }
+    })
+}
+
+// 6. 获取流水明细 (表格 + 筛选)
+export function getTransactionList(data) {
+    return request({
+        url: '/user/transaction/list',
+        method: 'post',
+        data // 包含 userId, page, pageSize, category, startDate, endDate
+    })
+}
+
+// 7. 获取图表数据 (折线图 + 饼图)
+export function getFinanceCharts(userId) {
+    return request({
+        url: '/user/finance/charts',
+        method: 'get',
+        params: { userId }
     })
 }

@@ -47,7 +47,6 @@
           <span class="ink-seal">纳</span>
           <span class="ink-text">灵脉灌注</span>
         </div>
-
         <button class="primary-btn" @click="$router.push('/mission-hall')">前往大厅</button>
       </div>
     </div>
@@ -122,24 +121,24 @@
           <div class="summary-card income">
             <div class="card-icon">📈</div>
             <div class="card-info">
-              <div class="card-title">累计净收入 (Real Income)</div>
-              <div class="card-num money">+{{ chartStats.realIn }}</div>
-              <div class="card-sub">含充值、做任务收益</div>
+              <div class="card-title">累计净收入 (Total Income)</div>
+              <div class="card-num money">+{{ overview.totalIncome }}</div>
+              <div class="card-sub">本月新增: +{{ overview.monthIncome }}</div>
             </div>
           </div>
           <div class="summary-card expense">
             <div class="card-icon">💸</div>
             <div class="card-info">
-              <div class="card-title">累计净支出 (Real Expense)</div>
-              <div class="card-num expense-num">-{{ Math.abs(chartStats.realOut) }}</div>
-              <div class="card-sub">实际消耗（不含冻结中）</div>
+              <div class="card-title">累计净支出 (Total Expense)</div>
+              <div class="card-num expense-num">-{{ overview.totalExpense }}</div>
+              <div class="card-sub">本月支出: -{{ overview.monthExpense }}</div>
             </div>
           </div>
           <div class="summary-card balance">
-            <div class="card-icon">🔒</div>
+            <div class="card-icon">❄️</div>
             <div class="card-info">
               <div class="card-title">当前冻结 (Locked)</div>
-              <div class="card-num frozen">{{ chartStats.frozen }}</div>
+              <div class="card-num frozen">{{ userInfo.frozenBalance || 0 }}</div>
               <div class="card-sub">悬赏押金，未消耗</div>
             </div>
           </div>
@@ -148,15 +147,12 @@
         <div class="chart-row">
           <div class="chart-container left">
             <div class="chart-title">
-              📊 每日资金动向
-              <el-tooltip content="绿色=真实进账，红色=真实出账，橙色=暂时冻结(非支出)" placement="top">
-                <i class="help-circle small">?</i>
-              </el-tooltip>
+              📊 近12个月资金动向
             </div>
             <div ref="barChartRef" class="echarts-box"></div>
           </div>
           <div class="chart-container right">
-            <div class="chart-title">☯️ 交易类型构成</div>
+            <div class="chart-title">☯️ 收支构成分析</div>
             <div ref="pieChartRef" class="echarts-box"></div>
           </div>
         </div>
@@ -164,19 +160,33 @@
         <div class="table-section">
           <div class="section-header">
             <span>📜 交易流水明细</span>
-            <div class="filter-group">
-              <el-radio-group v-model="assetFilter" size="small">
+
+            <div class="filter-group" style="display: flex; gap: 10px;">
+              <el-date-picker
+                  v-model="dateRange"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  size="small"
+                  value-format="YYYY-MM-DD"
+                  style="width: 240px;"
+                  @change="handleSearch"
+              />
+              <el-radio-group v-model="queryParams.category" size="small" @change="handleSearch">
                 <el-radio-button label="all">全部</el-radio-button>
-                <el-radio-button label="1">流动余额</el-radio-button>
-                <el-radio-button label="2">冻结押金</el-radio-button>
+                <el-radio-button label="income">只看收入</el-radio-button>
+                <el-radio-button label="expense">只看支出</el-radio-button>
+                <el-radio-button label="locked">冻结/退款</el-radio-button>
               </el-radio-group>
             </div>
           </div>
 
           <el-table
-              :data="filteredTransactionList"
+              :data="transactionList"
               class="elegant-table"
               height="400"
+              v-loading="loading"
               :header-cell-style="{ background: '#f8f9fa', color: '#666' }"
           >
 
@@ -216,9 +226,23 @@
               </template>
             </el-table-column>
 
-            <el-table-column prop="description" label="备注" min-width="180" show-overflow-tooltip/>
+            <el-table-column prop="remark" label="备注" min-width="180" show-overflow-tooltip>
+              <template #default="{ row }">{{ row.remark || row.description }}</template>
+            </el-table-column>
 
           </el-table>
+
+          <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
+            <el-pagination
+                v-model:current-page="queryParams.page"
+                v-model:page-size="queryParams.pageSize"
+                :total="total"
+                :page-sizes="[10, 20, 50]"
+                layout="total, sizes, prev, pager, next, jumper"
+                @size-change="loadTransactions"
+                @current-change="loadTransactions"
+            />
+          </div>
         </div>
 
       </div>
@@ -258,43 +282,31 @@
       </template>
     </el-dialog>
 
-    <el-dialog
-        v-model="rechargeDialogVisible"
-        width="450px"
-        class="custom-dialog paper-dialog"
-        :show-close="false"
-        align-center
-    >
+    <el-dialog v-model="rechargeDialogVisible" width="450px" class="custom-dialog paper-dialog" :show-close="false"
+               align-center>
       <template #header>
         <div class="paper-header">
           <div class="paper-title">灵 脉 灌 注</div>
           <button class="close-icon" @click="rechargeDialogVisible = false">×</button>
         </div>
       </template>
-
       <div class="paper-content recharge-content">
         <div class="recharge-grid">
-          <div
-              v-for="amount in [6, 30, 98, 198, 328, 648]"
-              :key="amount"
-              :class="['recharge-item', { active: rechargeForm.amount === amount }]"
-              @click="rechargeForm.amount = amount"
-          >
+          <div v-for="amount in [6, 30, 98, 198, 328, 648]" :key="amount"
+               :class="['recharge-item', { active: rechargeForm.amount === amount }]"
+               @click="rechargeForm.amount = amount">
             <div class="gem-icon">💎</div>
             <div class="gem-amount">{{ amount }} 灵石</div>
             <div class="rmb-price">¥ {{ amount }}</div>
           </div>
         </div>
-
         <div class="custom-amount-box">
-          <div class="ink-field reward-field">
-            <span class="prefix">自定义:</span>
-            <input type="number" v-model="rechargeForm.amount" placeholder="输入数量"/>
-            <span class="unit">灵石</span>
-          </div>
+          <div class="ink-field reward-field"><span class="prefix">自定义:</span><input type="number"
+                                                                                        v-model="rechargeForm.amount"
+                                                                                        placeholder="输入数量"/><span
+              class="unit">灵石</span></div>
         </div>
       </div>
-
       <template #footer>
         <div class="paper-footer">
           <button class="ink-btn cancel" @click="rechargeDialogVisible = false">放弃</button>
@@ -307,8 +319,12 @@
 </template>
 
 <script setup>
-import {ref, onMounted, watch, nextTick, computed} from 'vue'
-import {getUserInfo, getMyMissions, getMyTransactions, rechargeBalance} from '../api/user'
+import {ref, onMounted, watch, nextTick} from 'vue'
+// 🆕 引入新的API (假设你已经加到了 api/user.js)
+import {
+  getUserInfo, getMyMissions, rechargeBalance,
+  getFinanceOverview, getTransactionList, getFinanceCharts
+} from '../api/user'
 import {submitMission, auditMission} from '../api/mission'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import * as echarts from 'echarts'
@@ -319,66 +335,70 @@ const activeTab = ref('published')
 
 const publishedList = ref([])
 const acceptedList = ref([])
-const transactionList = ref([])
-const assetFilter = ref('all') // 筛选器状态
 
+// 🆕 财务模块新的 State 定义
+const transactionList = ref([])
+const total = ref(0) // 总条数
+const loading = ref(false)
+const dateRange = ref([])
+// 概览数据 (对应 FinanceOverviewVO)
+const overview = ref({
+  totalIncome: 0, totalExpense: 0, monthIncome: 0, monthExpense: 0
+})
+// 查询参数 (对应 TransactionPageReq)
+const queryParams = ref({
+  userId: myUserId,
+  page: 1,
+  pageSize: 10,
+  category: 'all', // 对应后端的 income, expense, locked, all
+  startDate: null,
+  endDate: null
+})
+
+// 图表实例
 const barChartRef = ref(null)
 const pieChartRef = ref(null)
 let barChart = null
 let pieChart = null
 
-const chartStats = ref({realIn: 0, realOut: 0, frozen: 0})
+// 弹窗相关
 const submitDialogVisible = ref(false)
 const submitForm = ref({missionId: null, desc: '', image: '', materialsRaw: ''})
-
-// 充值相关
 const rechargeDialogVisible = ref(false)
 const rechargeForm = ref({amount: 6})
 
-// 辅助函数
+// --- 你的枚举和辅助函数 (完全保留) ---
 const formatDate = (dateStr) => dateStr ? dateStr.replace('T', ' ').substring(0, 19) : ''
 const formatDateSimple = (dateStr) => dateStr ? dateStr.split('T')[0] : '未知'
 const getStatusText = (val) => ({0: '待接单', 1: '进行中', 2: '待验收', 3: '已完成', 4: '已取消'}[val] || '--')
-//境界
 const getRealmText = (val) => ({
   1: '炼气期', 2: '筑基期', 3: '金丹期',
   4: '元婴期', 5: '化神期', 6: '炼虚期',
   7: '合体期', 8: '大乘期', 9: '渡劫期'
 }[val] || '?未知境界?')
-
-//动账类型: 1-发布悬赏, 2-结算支出, 3-任务收益, 4-任务取消/驳回退款, 5-灵石充值
+// 你的动账类型枚举 (后端现在支持6了，这里你可以根据需要加，不加也不影响运行)
 const getTransactionTypeText = (type) => {
   const map = {
     1: '发布悬赏', 2: '结算支出', 3: '任务收益',
-    4: '任务取消/驳回退款', 5: '灵石充值'
+    4: '任务取消/驳回退款', 5: '灵石充值', 6: '系统赠送' // 我顺手帮你把6加上了，防止显示"其他"
   }
   return map[type] || '其他'
 }
-
-// 🎨 业务类型标签颜色 (前端展示逻辑优化)
 const getBizTypeTag = (type) => {
-  // 真实收入 (5-充值, 3-任务收益)
-  if ([5, 3].includes(type)) return 'success'
-  // 真实支出 (2-结算支出)
+  if ([5, 3, 6].includes(type)) return 'success'
   if ([2].includes(type)) return 'danger'
-  // 内部流转/中性 (1-发布悬赏, 4-退款)
   if ([1, 4].includes(type)) return 'warning'
   return 'info'
 }
-
-// 💰 金额颜色逻辑：冻结类操作显示为橙色，不显示大红大绿
 const getAmountColor = (row) => {
-  // 如果是发布悬赏(1)，虽然金额是负数，但不是亏钱，用橙色
   if (row.type === 1) return '#faad14'
   if (row.amount > 0) return '#52c41a'
   return '#cf1322'
 }
+// --- 枚举结束 ---
 
-// 过滤后的列表
-const filteredTransactionList = computed(() => {
-  if (assetFilter.value === 'all') return transactionList.value
-  return transactionList.value.filter(item => item.assetType == assetFilter.value)
-})
+
+// --- 核心逻辑替换区 ---
 
 const loadUserInfo = async () => {
   if (myUserId) userInfo.value = await getUserInfo(myUserId) || {}
@@ -386,160 +406,127 @@ const loadUserInfo = async () => {
 const loadPublished = async () => publishedList.value = await getMyMissions({userId: myUserId, type: 1}) || []
 const loadAccepted = async () => acceptedList.value = await getMyMissions({userId: myUserId, type: 2}) || []
 
-const loadTransactions = async () => {
-  const res = await getMyTransactions(myUserId)
-  transactionList.value = res || []
-  nextTick(() => renderCharts())
+// 🆕 1. 加载概览数据
+const loadOverview = async () => {
+  const res = await getFinanceOverview(myUserId)
+  console.log(res)
+  if (res) { // 假设你的request封装返回的是res或者res.data
+    // 兼容处理：如果你的request拦截器直接返回data层，就去掉.data
+    const data = res.data || res
+    overview.value = data
+  }
 }
 
-// 📊 核心修正：图表与统计逻辑 (完全遵循你的资产模型)
-const renderCharts = () => {
-  if (!transactionList.value.length) return
+// 🆕 2. 加载流水列表 (服务端分页)
+const loadTransactions = async () => {
+  loading.value = true
 
-  let realIncome = 0
-  let realExpense = 0
-  // 直接取当前用户信息里的冻结余额，这个最准，不用自己累加流水
-  let currentFrozen = userInfo.value.frozenBalance || 0
-
-  const dayMap = new Map()
-  const typeMap = new Map()
-
-  transactionList.value.forEach(item => {
-    const type = item.type
-    const amount = item.amount
-    const absAmount = Math.abs(amount)
-
-    // 1. 统计卡片逻辑 (只算真金白银)
-    // 收入：充值(5) + 任务收益(3)
-    if (type === 5 || type === 3) {
-      realIncome += amount
-    }
-    // 支出：结算支出(2)。只有这个时候钱才真正给了别人。
-    // 注意：只有当 amount < 0 时才算支出 (防止某些退款逻辑干扰)
-    if (type === 2 && amount < 0) {
-      realExpense += amount // 这是一个负数
-    }
-
-    // 2. 饼图逻辑 (剔除内部流转产生的视觉干扰)
-    let typeName = getTransactionTypeText(type)
-    if (type === 1) {
-      typeName = '资金冻结(暂存)'
-      if (amount < 0) {
-        typeMap.set(typeName, (typeMap.get(typeName) || 0) + absAmount)
-      }
-    } else {
-      // 其他类型（充值、支出、收益）正常累加绝对值
-      typeMap.set(typeName, (typeMap.get(typeName) || 0) + absAmount)
-    }
-
-    // 3. 柱状图逻辑 (按天归集，分类展示)
-    const date = item.createTime.split('T')[0]
-    if (!dayMap.has(date)) dayMap.set(date, {in: 0, out: 0, freeze: 0})
-    const dayData = dayMap.get(date)
-
-    if (type === 5 || type === 3) {
-      dayData.in += amount // 真实收入
-    } else if (type === 2) {
-      dayData.out += absAmount // 真实支出 (取绝对值画图)
-    } else if (type === 1) {
-      // 统计当天的冻结量，用橙色柱子表示
-      if (amount < 0) {
-        dayData.freeze += absAmount
-      }
-    }
-  })
-
-  // 更新顶部卡片
-  chartStats.value = {
-    realIn: realIncome,
-    realOut: realExpense, // 负数
-    frozen: currentFrozen
+  // 处理时间
+  if (dateRange.value && dateRange.value.length === 2) {
+    queryParams.value.startDate = dateRange.value[0]
+    queryParams.value.endDate = dateRange.value[1]
+  } else {
+    queryParams.value.startDate = null
+    queryParams.value.endDate = null
   }
 
-  // 渲染柱状图 (堆叠模式，增加了“冻结”柱子)
-  const sortedDates = Array.from(dayMap.keys()).sort()
-  const inData = sortedDates.map(d => dayMap.get(d).in)
-  const outData = sortedDates.map(d => dayMap.get(d).out)
-  const freezeData = sortedDates.map(d => dayMap.get(d).freeze)
+  try {
+    const res = await getTransactionList(queryParams.value)
+    const data = res.data || res
+    transactionList.value = data.list
+    total.value = data.total
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
 
+// 🆕 3. 筛选变更
+const handleSearch = () => {
+  queryParams.value.page = 1 // 重置第一页
+  loadTransactions()
+}
+
+// 🆕 4. 渲染图表 (直接用后端数据)
+const renderCharts = async () => {
+  // 调接口
+  const res = await getFinanceCharts(myUserId)
+  const data = res.data || res
+
+  // A. 渲染折线图 (Trend)
   if (barChartRef.value) {
     if (barChart) barChart.dispose()
     barChart = echarts.init(barChartRef.value)
     barChart.setOption({
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {type: 'shadow'}
-      },
+      tooltip: {trigger: 'axis'},
       legend: {bottom: 0},
       grid: {top: '15%', bottom: '15%', left: '3%', right: '5%', containLabel: true},
-      xAxis: {type: 'category', data: sortedDates},
+      xAxis: {type: 'category', data: data.trendMonths}, // 后端补全好的月份
       yAxis: {type: 'value'},
       series: [
         {
-          name: '真实收入',
-          type: 'bar',
-          stack: 'total',
-          data: inData,
+          name: '收入',
+          type: 'line', // 折线图更能体现趋势
+          smooth: true,
+          data: data.trendIncome,
           itemStyle: {color: '#52c41a'},
-          barMaxWidth: 30
+          areaStyle: {opacity: 0.1} // 加个阴影更好看
         },
         {
-          name: '真实支出',
-          type: 'bar',
-          stack: 'total',
-          data: outData,
+          name: '支出',
+          type: 'line',
+          smooth: true,
+          data: data.trendExpense,
           itemStyle: {color: '#ff4d4f'},
-          barMaxWidth: 30
-        },
-        {
-          name: '发布冻结',
-          type: 'bar',
-          stack: 'total',
-          data: freezeData,
-          itemStyle: {color: '#faad14'}, // 橙色
-          barMaxWidth: 30,
-          tooltip: {formatter: '{c} (暂时锁定)'}
+          areaStyle: {opacity: 0.1}
         }
       ]
     })
   }
 
-  // 渲染饼图
-  const pieData = Array.from(typeMap.entries()).map(([name, value]) => ({name, value}))
+  // B. 渲染饼图 (Pie)
   if (pieChartRef.value) {
     if (pieChart) pieChart.dispose()
     pieChart = echarts.init(pieChartRef.value)
     pieChart.setOption({
       tooltip: {trigger: 'item'},
-      legend: {bottom: 0, icon: 'circle', type: 'scroll'},
+      legend: {bottom: 0, type: 'scroll'},
       series: [{
-        name: '资金动向',
+        name: '收支构成',
         type: 'pie',
         radius: ['40%', '65%'],
         itemStyle: {borderRadius: 5, borderColor: '#fff', borderWidth: 2},
-        data: pieData,
+        data: data.pieData, // 后端已经把 name 换成中文了
         label: {show: false}
       }]
     })
   }
 }
 
+// 监听 Tab 切换
 watch(activeTab, (val) => {
   if (val === 'published') loadPublished()
   if (val === 'accepted') loadAccepted()
-  if (val === 'transactions') loadTransactions()
+  if (val === 'transactions') {
+    loadOverview()     // 查概览
+    loadTransactions() // 查表格
+    nextTick(() => renderCharts()) // 查图表
+  }
 }, {immediate: true})
 
+// 窗口大小自适应
 window.addEventListener('resize', () => {
   barChart && barChart.resize();
   pieChart && pieChart.resize()
 })
 
+// --- 原有的弹窗逻辑 (完全保留) ---
 const openSubmitDialog = (row) => {
   submitForm.value = {missionId: row.id, desc: '', image: '', materialsRaw: ''};
   submitDialogVisible.value = true
 }
-const handleSubmit = async () => {
+const handleSubmit = async () => { /* ...原逻辑... */
   try {
     await submitMission({
       missionId: submitForm.value.missionId,
@@ -556,7 +543,7 @@ const handleSubmit = async () => {
   } catch (e) {
   }
 }
-const handleAudit = (row, isPass) => {
+const handleAudit = (row, isPass) => { /* ...原逻辑... */
   ElMessageBox.prompt(isPass ? '确认验收？' : '确认驳回？', '批复', {
     confirmButtonText: '确定',
     cancelButtonText: '取消'
@@ -571,26 +558,25 @@ const handleAudit = (row, isPass) => {
   }).catch(() => {
   })
 }
-
-// 充值逻辑
 const openRechargeDialog = () => {
-  rechargeForm.value.amount = 6
+  rechargeForm.value.amount = 6;
   rechargeDialogVisible.value = true
 }
-const handleRecharge = async () => {
+const handleRecharge = async () => { /* ...原逻辑... */
   if (!rechargeForm.value.amount || rechargeForm.value.amount <= 0) {
-    ElMessage.warning('请选择或输入正确的灵石数量')
+    ElMessage.warning('请选择或输入正确的灵石数量');
     return
   }
   try {
-    await rechargeBalance({
-      userId: myUserId,
-      amount: Number(rechargeForm.value.amount)
-    })
-    ElMessage.success(`成功灌注 ${rechargeForm.value.amount} 灵石！`)
-    rechargeDialogVisible.value = false
-    loadUserInfo()
-    loadTransactions()
+    await rechargeBalance({userId: myUserId, amount: Number(rechargeForm.value.amount)});
+    ElMessage.success(`成功灌注 ${rechargeForm.value.amount} 灵石！`);
+    rechargeDialogVisible.value = false;
+    loadUserInfo();
+    if (activeTab.value === 'transactions') {
+      loadOverview();
+      loadTransactions();
+      renderCharts();
+    }
   } catch (error) {
   }
 }
