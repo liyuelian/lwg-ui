@@ -7,9 +7,8 @@
           <div class="avatar-border">
             <el-avatar :size="70" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"/>
           </div>
-          <el-tag size="small" :type="userInfo.status === 1 ? 'success' : 'danger'" effect="dark" class="status-pill">
-            {{ userInfo.status === 1 ? '道心通明' : '封印中' }}
-          </el-tag>
+
+          <span class="realm-badge">{{ getRealmText(userInfo.realm) }}</span>
         </div>
         <div class="info-container">
           <div class="name-box">
@@ -17,8 +16,23 @@
             <span class="uid-tag">UID: {{ myUserId }}</span>
           </div>
           <div class="tags-box">
-            <span class="realm-badge">{{ getRealmText(userInfo.realm) }}</span>
-            <span class="role-badge">炼丹师</span>
+            <el-tag size="small" :type="userInfo.status === 1 ? 'success' : 'danger'" effect="dark" class="status-pill">
+              {{ userInfo.status === 1 ? '道心通明' : '封印中' }}
+            </el-tag>
+            <div class="reputation-pill" @click="openReputationDialog">
+              <span class="rep-icon">信用</span>
+              <span class="rep-val" :style="{ color: getReputationColor(userInfo.reputation) }">
+                {{ (userInfo.reputation / 100).toFixed(2) }}
+              </span>
+              <div class="rep-bar-wrapper">
+                <el-progress
+                    :percentage="calculateRepPercentage(userInfo.reputation)"
+                    :color="getReputationColor(userInfo.reputation)"
+                    :stroke-width="4"
+                    :show-text="false"
+                />
+              </div>
+            </div>
           </div>
           <div class="time-box">
             <span>📅 入宗: {{ formatDateSimple(userInfo.createTime) }}</span>
@@ -249,6 +263,31 @@
 
     </div>
 
+    <el-dialog v-model="reputationDialogVisible" title="📜 功德簿 (信誉明细)" width="500px" align-center class="custom-dialog">
+      <div class="reputation-dialog-body" v-loading="repLoading">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 :style="{ color: getReputationColor(userInfo.reputation), fontSize: '36px', margin: '0' }">
+            {{ (userInfo.reputation / 100).toFixed(2) }}
+          </h1>
+          <span style="font-size: 12px; color: #999;">当前信誉</span>
+        </div>
+        <el-divider style="margin: 15px 0;"/>
+        <div style="max-height: 400px; overflow-y: auto; padding: 0 10px;">
+          <el-timeline>
+            <el-timeline-item v-for="(log, index) in reputationLogs" :key="index" :type="log.changeScore > 0 ? 'success' : 'danger'" :timestamp="formatDate(log.createTime)" placement="top">
+              <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
+                <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px; color: #333;">{{ log.remark }}</div>
+                <div style="font-size: 12px; color: #666;">
+                  变动: <span :style="{ color: log.changeScore > 0 ? '#67C23A' : '#F56C6C', fontWeight: 'bold' }">{{ log.changeScore > 0 ? '+' : '' }}{{ (log.changeScore / 100).toFixed(2) }}</span>
+                </div>
+              </div>
+            </el-timeline-item>
+          </el-timeline>
+          <div v-if="reputationLogs.length === 0" style="text-align: center; color: #999; padding: 20px;">暂无记录</div>
+        </div>
+      </div>
+    </el-dialog>
+
     <el-dialog v-model="submitDialogVisible" width="500px" class="custom-dialog paper-dialog" :show-close="false"
                align-center>
       <template #header>
@@ -323,11 +362,71 @@ import {ref, onMounted, watch, nextTick} from 'vue'
 // 🆕 引入新的API (假设你已经加到了 api/user.js)
 import {
   getUserInfo, getMyMissions, rechargeBalance,
-  getFinanceOverview, getTransactionList, getFinanceCharts
+  getFinanceOverview, getTransactionList, getFinanceCharts,
+  getUserReputationLogs
 } from '../api/user'
 import {submitMission, auditMission} from '../api/mission'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import * as echarts from 'echarts'
+
+// 信誉弹窗专用变量
+const reputationDialogVisible = ref(false) // 弹窗开关
+const repLoading = ref(false)              // 加载状态
+const reputationLogs = ref([])             // 日志数据列表
+
+// --- 🔥 信誉计算辅助工具 ---
+
+// 1. 计算进度条百分比 (假设 120 分满分)
+const calculateRepPercentage = (score) => {
+  if (!score && score !== 0) return 60 // 默认值
+  let p = (score / 100) / 120 * 100
+  return p > 100 ? 100 : p
+}
+
+// 2. 根据分数获取颜色 (绿 > 蓝 > 红)
+const getReputationColor = (score) => {
+  const s = (score || 6000) / 100
+  if (s >= 80) return '#67C23A' // 优秀-绿
+  if (s >= 60) return '#409EFF' // 及格-蓝
+  return '#F56C6C'              // 危险-红
+}
+
+// 3. 获取称号文本 (弹窗里用)
+const getReputationText = (score) => {
+  const s = (score || 6000) / 100
+  if (s >= 100) return '大罗金仙'
+  if (s >= 80) return '元婴老怪'
+  if (s >= 60) return '道心通明'
+  return '心魔缠身'
+}
+
+// 4. 获取标签类型 (弹窗里用)
+const getReputationTagType = (score) => {
+  const s = (score || 6000) / 100
+  if (s >= 80) return 'success'
+  if (s >= 60) return 'primary'
+  return 'danger'
+}
+
+// 🔥 打开信誉弹窗并加载数据
+const openReputationDialog = async () => {
+  reputationDialogVisible.value = true
+
+  // 为了节省流量，只有当列表为空时才去请求后端
+  if (reputationLogs.value.length === 0) {
+    repLoading.value = true
+    try {
+      // 这里的 page: 1, size: 20 是取最近 20 条记录
+      const res = await getUserReputationLogs({page: 1, size: 20, userId: myUserId})
+      // 兼容处理：有些后端封装在 data 里，有些直接返回 list
+      reputationLogs.value = res.data?.list || res.list || []
+    } catch (e) {
+      console.error('获取信誉日志失败', e)
+    } finally {
+      repLoading.value = false
+    }
+  }
+}
 
 const myUserId = Number(localStorage.getItem('lwg_user_id'))
 const userInfo = ref({})
@@ -684,9 +783,10 @@ onMounted(() => {
 .realm-badge {
   background: #faad14;
   color: #fff;
-  font-size: 12px;
+  font-size: 14px;
   padding: 1px 8px;
-  border-radius: 2px;
+  border-radius: 1px;
+  height: 20px;
 }
 
 .role-badge {
@@ -1354,4 +1454,55 @@ onMounted(() => {
   background: transparent;
   font-family: monospace;
 }
+
+/* 🔥🔥 信誉胶囊样式 🔥🔥 */
+.reputation-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  /* 高度与原本的 realm-badge 对齐 */
+  height: 20px;
+  border: 1px solid #dcdfe6;
+  border-radius: 12px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.reputation-pill:hover {
+  border-color: #409EFF;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  transform: translateY(-1px);
+}
+
+.rep-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.rep-val {
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* 关键：给进度条容器一个固定宽度，防止它消失 */
+.rep-bar-wrapper {
+  width: 100px;
+  display: flex;
+  align-items: center;
+}
+
+/* 强制进度条撑满容器 */
+.rep-bar-wrapper .el-progress {
+  width: 100%;
+}
+
+/* 让未填充的背景色显眼一点 */
+.rep-bar-wrapper :deep(.el-progress-bar__outer) {
+  background-color: #ebeef5;
+}
+
 </style>

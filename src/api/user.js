@@ -62,3 +62,13 @@ export function getFinanceCharts(userId) {
         params: { userId }
     })
 }
+
+// 8.获取用户信誉流水
+export function getUserReputationLogs(params) {
+    return request({
+
+        url: '/user/reputation/list',
+        method: 'get',
+        params
+    })
+}
