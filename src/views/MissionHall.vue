@@ -105,10 +105,11 @@
 
       <el-dialog
           v-model="publishDialogVisible"
-          width="600px"
+          width="650px"
           class="custom-dialog paper-dialog"
           :show-close="false"
           align-center
+          destroy-on-close
       >
         <template #header>
           <div class="paper-header">
@@ -126,6 +127,7 @@
             <textarea v-model="publishForm.description" class="desc-input" rows="4" placeholder="在此详细描述任务内容、目标及特殊要求..."></textarea>
           </div>
           <div class="ink-divider"></div>
+
           <div class="meta-grid">
             <div class="meta-item">
               <label>悬赏金额</label>
@@ -134,22 +136,32 @@
                 <span class="unit">灵石</span>
               </div>
             </div>
+
             <div class="meta-item">
               <label>任务类型</label>
-              <el-select v-model="publishForm.missionType" placeholder="请选择" class="ink-select" popper-class="ink-popper">
+              <el-select v-model="publishForm.missionType" placeholder="请选择" class="ink-select">
                 <el-option label="降妖" :value="1" />
                 <el-option label="采集" :value="2" />
                 <el-option label="护送" :value="3" />
                 <el-option label="其他" :value="4" />
               </el-select>
             </div>
+
             <div class="meta-item">
               <label>截止日期</label>
-              <el-date-picker v-model="publishForm.deadline" type="datetime" placeholder="无期限" format="YYYY/MM/DD" value-format="YYYY-MM-DD HH:mm:ss" class="ink-date-picker" :teleported="false" />
+              <el-date-picker
+                  v-model="publishForm.deadline"
+                  type="datetime"
+                  placeholder="无期限"
+                  format="YYYY/MM/DD"
+                  value-format="YYYY-MM-DD HH:mm:ss"
+                  class="ink-date-picker"
+              />
             </div>
+
             <div class="meta-item">
               <label>最低境界</label>
-              <el-select v-model="publishForm.minRealm" placeholder="炼气期" class="ink-select" popper-class="ink-popper">
+              <el-select v-model="publishForm.minRealm" placeholder="炼气期" class="ink-select">
                 <el-option label="炼气期" :value="1" />
                 <el-option label="筑基期" :value="2" />
                 <el-option label="金丹期" :value="3" />
@@ -161,13 +173,15 @@
                 <el-option label="渡劫期" :value="9" />
               </el-select>
             </div>
-            <div class="meta-item">
+
+            <div class="meta-item full-width">
               <label>难度等级</label>
               <div class="seal-selector">
-                <span v-for="i in 3" :key="i" :class="['seal-opt', { active: publishForm.difficulty === i }]" @click="publishForm.difficulty = i">{{ difficultyText(i) }}</span>
+                <span v-for="i in 4" :key="i" :class="['seal-opt', { active: publishForm.difficulty === i }]" @click="publishForm.difficulty = i">{{ difficultyText(i) }}</span>
               </div>
             </div>
           </div>
+
           <div class="stamp-layer" v-if="isStamping">
             <div class="stamp-mark"><div class="stamp-inner">悬赏<br>发布</div></div>
           </div>
@@ -430,40 +444,121 @@ onMounted(() => {
 .disabled-text { color: #ccc; font-size: 12px; }
 .time-text { font-size: 12px; color: #666; font-family: monospace; }
 
-/* 宣纸弹窗样式 (保持上一次的发布样式) */
-:deep(.paper-dialog) { background-color: #fdfbf7; border-radius: 2px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); border: 1px solid #efeadd; }
+
+/* =========================================
+   🔥 原版宣纸样式修复 + 卷轴动画 🔥
+========================================= */
+
+:deep(.paper-dialog) {
+  background-color: #fdfbf7;
+  border-radius: 2px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+  border: 1px solid #efeadd;
+  /* 💡 拉幕式的卷轴动画，绝不破坏内部布局 */
+  animation: unrollScroll 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes unrollScroll {
+  0% { clip-path: inset(0 0 100% 0); }
+  /* 防止 clip-path 切掉下拉框，动画结束后解除限制 */
+  100% { clip-path: inset(-20% -20% -20% -20%); }
+}
+
 :deep(.paper-dialog .el-dialog__header) { padding: 0; margin: 0; }
-:deep(.paper-dialog .el-dialog__body) { padding: 0 40px 30px; position: relative; min-height: 400px; }
-:deep(.paper-dialog .el-dialog__footer) { padding: 20px 40px 30px; background: transparent; }
-.paper-header { text-align: center; padding: 30px 0 20px; position: relative; margin-bottom: 20px; }
+/* 💡 修复高度溢出：取消 min-height，让内容自然撑开 */
+:deep(.paper-dialog .el-dialog__body) { padding: 0 40px 10px; position: relative; }
+/* 💡 底部留出空间 */
+:deep(.paper-dialog .el-dialog__footer) { padding: 10px 40px 30px; background: transparent; }
+
+.paper-header { text-align: center; padding: 30px 0 20px; position: relative; margin-bottom: 10px; }
 .paper-title { font-family: 'Noto Serif SC', serif; font-size: 28px; font-weight: bold; letter-spacing: 10px; color: #3e2723; }
 .close-icon { position: absolute; top: 10px; right: 20px; background: transparent; border: none; font-size: 24px; color: #a1887f; cursor: pointer; }
+
 .center-row { display: flex; justify-content: center; margin-bottom: 20px; }
 .title-input { width: 80%; text-align: center; border: none; border-bottom: 2px solid #3e2723; background: transparent; font-size: 20px; font-weight: bold; color: #333; padding: 10px; font-family: 'Noto Serif SC', serif; outline: none; }
 .desc-input { width: 90%; text-align: center; border: none; background: transparent; font-size: 15px; color: #555; line-height: 1.8; outline: none; resize: none; font-family: 'Noto Serif SC', serif; }
-.ink-divider { height: 1px; background: repeating-linear-gradient(to right, #d7ccc8 0, #d7ccc8 5px, transparent 5px, transparent 10px); margin: 20px auto; width: 90%; }
-.meta-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; width: 100%; padding-top: 10px; }
-.meta-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-.meta-item label { font-size: 12px; color: #8d6e63; font-weight: bold; }
-.reward-field input { width: 60px; text-align: center; border: none; border-bottom: 1px solid #d7ccc8; background: transparent; font-weight: bold; color: #b71c1c; font-size: 16px; outline: none; }
-.unit { font-size: 12px; color: #8d6e63; }
-:deep(.ink-select .el-input__wrapper) { box-shadow: none !important; border: none; padding: 0; background: transparent; }
-:deep(.ink-select .el-input__inner) { text-align: center; color: #3e2723; font-weight: bold; font-family: 'Noto Serif SC'; }
-:deep(.ink-date-picker .el-input__wrapper) { box-shadow: none !important; background: transparent; padding: 0; }
-:deep(.ink-date-picker .el-input__inner) { text-align: center; color: #333; cursor: pointer; }
-.seal-selector { display: flex; gap: 5px; }
-.seal-opt { font-size: 12px; border: 1px solid #d7ccc8; padding: 2px 6px; border-radius: 4px; cursor: pointer; color: #aaa; }
+.ink-divider { height: 1px; background: repeating-linear-gradient(to right, #d7ccc8 0, #d7ccc8 5px, transparent 5px, transparent 10px); margin: 10px auto 20px; width: 90%; }
+
+/* 💡 核心修复：两列宽敞网格布局 */
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 均分两列 */
+  gap: 25px 40px; /* 行间距 25px，列间距 40px */
+  width: 100%;
+  padding: 10px 30px 0;
+  box-sizing: border-box;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* 内容靠左对齐 */
+  gap: 8px;
+  width: 100%;
+}
+
+/* 让难度选择独占一行并居中 */
+.meta-item.full-width {
+  grid-column: 1 / -1;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.meta-item label { font-size: 13px; color: #8d6e63; font-weight: bold; }
+
+/* 💡 修复悬赏金额：取消固定宽度限制 */
+.reward-field {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  border-bottom: 1px solid #d7ccc8;
+  padding-bottom: 4px;
+}
+.reward-field input {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: none;
+  background: transparent;
+  font-weight: bold;
+  color: #b71c1c;
+  font-size: 18px;
+  outline: none;
+  font-family: monospace;
+}
+.unit { font-size: 13px; color: #8d6e63; margin-left: 8px; }
+
+/* 💡 修复下拉框和日期框样式 */
+:deep(.ink-select),
+:deep(.ink-date-picker) {
+  width: 100%;
+}
+:deep(.ink-select .el-input__wrapper),
+:deep(.ink-date-picker .el-input__wrapper) {
+  box-shadow: none !important; border: none; padding: 0 0 4px 0; background: transparent; border-bottom: 1px solid #d7ccc8; border-radius: 0; width: 100%;
+}
+:deep(.ink-select .el-input__inner),
+:deep(.ink-date-picker .el-input__inner) {
+  text-align: left; color: #3e2723; font-weight: bold; font-family: 'Noto Serif SC', serif; font-size: 15px;
+}
+
+.seal-selector { display: flex; gap: 8px; }
+.seal-opt { font-size: 14px; border: 1px solid #d7ccc8; padding: 2px 6px; border-radius: 4px; cursor: pointer; color: #aaa; white-space: nowrap; }
 .seal-opt.active { border-color: #b71c1c; color: #b71c1c; font-weight: bold; background: rgba(183, 28, 28, 0.05); }
-.paper-footer { display: flex; justify-content: center; gap: 30px; margin-top: 20px; }
+
+.paper-footer { display: flex; justify-content: center; gap: 30px; margin-top: 10px; }
 .ink-btn { border: none; cursor: pointer; font-size: 16px; padding: 8px 30px; font-family: 'Noto Serif SC', serif; letter-spacing: 4px; border-radius: 2px; transition: all 0.3s; }
 .ink-btn.cancel { background: transparent; color: #8d6e63; }
 .ink-btn.submit { background: #3e2723; color: #fdfbf7; box-shadow: 0 4px 10px rgba(62, 39, 35, 0.3); }
+
+/* 印章动画 */
 .stamp-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none; z-index: 10; background: rgba(253, 251, 247, 0.5); }
 .stamp-mark { width: 140px; height: 140px; border: 4px solid #b71c1c; border-radius: 50%; color: #b71c1c; display: flex; justify-content: center; align-items: center; transform: scale(3); opacity: 0; animation: stamp-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .stamp-inner { font-size: 32px; font-weight: 900; writing-mode: vertical-rl; letter-spacing: 10px; border: 2px dashed #b71c1c; padding: 15px; border-radius: 50%; width: 100px; height: 100px; display: flex; justify-content: center; align-items: center; }
 @keyframes stamp-in { 0% { transform: scale(3) rotate(-10deg); opacity: 0; } 50% { opacity: 1; } 100% { transform: scale(1) rotate(-5deg); opacity: 0.9; } }
 
-/* 🌟 详情页样式补丁 & 进度图样式 🌟 */
+
+/* 🌟 详情页样式补丁 & 进度图样式 (保持原样) 🌟 */
 .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f0f0f0; }
 .detail-title { font-size: 22px; font-weight: bold; color: #333; margin: 0; display: flex; align-items: center; gap: 10px; }
 .id-tag { background: #f0f0f0; padding: 2px 8px; border-radius: 4px; font-size: 14px; color: #666; font-family: monospace; }
@@ -479,7 +574,7 @@ onMounted(() => {
 .section-content { color: #555; line-height: 1.7; white-space: pre-wrap; font-size: 14px; }
 .dialog-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 
-/* 🌟 水墨进度图样式 (覆盖 Element Plus 默认蓝色) 🌟 */
+/* 🌟 水墨进度图样式 */
 .time-line-box {
   margin-top: 30px;
   padding: 20px 0;
@@ -489,15 +584,12 @@ onMounted(() => {
   font-weight: bold; font-size: 14px; color: #5d4037; margin-bottom: 20px;
   padding-left: 10px; border-left: 3px solid #8b3a3a;
 }
-/* 改颜色 */
 :deep(.ink-steps .el-step__head.is-process),
 :deep(.ink-steps .el-step__head.is-wait) { color: #d7ccc8; border-color: #d7ccc8; }
 :deep(.ink-steps .el-step__title.is-process),
 :deep(.ink-steps .el-step__title.is-wait) { color: #aaa; font-weight: normal; }
 :deep(.ink-steps .el-step__description.is-process),
 :deep(.ink-steps .el-step__description.is-wait) { color: #ccc; }
-
-/* 完成/进行中变成朱砂红 */
 :deep(.ink-steps .el-step__head.is-success),
 :deep(.ink-steps .el-step__head.is-finish) { color: #8b3a3a; border-color: #8b3a3a; }
 :deep(.ink-steps .el-step__title.is-success),
