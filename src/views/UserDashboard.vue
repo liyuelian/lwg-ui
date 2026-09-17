@@ -412,14 +412,15 @@ const getRealmText = (val) => ({
   7: '合体期', 8: '大乘期', 9: '渡劫期'
 }[val] || '?未知境界?')
 const getTransactionTypeText = (type) => {
+  // 与后端 TransactionType 枚举保持一致: 1-发布悬赏(中性), 2-结算支出, 3-任务收益, 4-悬赏退回(中性), 5-灵石充值
   const map = {
     1: '发布悬赏', 2: '结算支出', 3: '任务收益',
-    4: '任务取消/驳回退款', 5: '灵石充值', 6: '系统赠送'
+    4: '悬赏退回', 5: '灵石充值'
   }
   return map[type] || '其他'
 }
 const getBizTypeTag = (type) => {
-  if ([5, 3, 6].includes(type)) return 'success'
+  if ([5, 3].includes(type)) return 'success'
   if ([2].includes(type)) return 'danger'
   if ([1, 4].includes(type)) return 'warning'
   return 'info'
