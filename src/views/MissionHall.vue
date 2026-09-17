@@ -97,7 +97,17 @@
               >
                 接榜
               </button>
-              <span v-else-if="queryParams.status !== 0" class="disabled-text">--</span>
+              <button
+                  v-if="queryParams.status === 0 && row.publisherId === myUserId"
+                  class="small-outline-btn"
+                  @click="handleCancel(row)"
+              >
+                撤榜
+              </button>
+              <!-- 独立判断：非「招募中」页签下没有可执行操作，显示占位符。
+                   不能写成 v-else-if，否则会与上面的撤榜按钮串成条件链，
+                   导致「别人发布的待接单任务」既不显示按钮也不显示占位符。 -->
+              <span v-if="queryParams.status !== 0" class="disabled-text">--</span>
             </div>
           </template>
         </el-table-column>
@@ -257,6 +267,7 @@
           <div class="dialog-footer">
             <button class="outline-btn" @click="detailDialogVisible = false">关闭卷轴</button>
             <button v-if="currentMission?.status === 0 && currentMission?.publisherId !== myUserId" class="primary-btn" style="margin-left: 10px;" @click="handleAcceptInDetail">接榜</button>
+            <button v-if="currentMission?.status === 0 && currentMission?.publisherId === myUserId" class="danger-btn" style="margin-left: 10px;" @click="handleCancelInDetail">撤榜退回押金</button>
           </div>
         </template>
       </el-dialog>
@@ -267,8 +278,8 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue'
-import { getMissionList, acceptMission, publishMission } from '../api/mission'
-import { ElMessage } from 'element-plus'
+import { getMissionList, acceptMission, publishMission, cancelMission } from '../api/mission'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 
 const formatDate = (dateStr) => {
@@ -360,6 +371,34 @@ const handleAcceptInDetail = () => {
   }
 }
 
+// 撤榜：仅发布者本人、且任务处于「待接单」时可执行，与后端 MissionServiceImpl.cancelMission 的校验保持一致
+const handleCancel = async (mission) => {
+  try {
+    const { value } = await ElMessageBox.prompt('撤榜后押金将解冻退回你的可用灵石，请填写撤榜原因：', '确认撤榜', {
+      confirmButtonText: '确认撤榜',
+      cancelButtonText: '再想想',
+      inputPlaceholder: '例如：已有道友私下接取',
+      inputValidator: (v) => {
+        if (!v || !v.trim()) return '请填写撤榜原因'
+        if (v.length > 255) return '撤榜原因最多 255 个字符'
+        return true
+      }
+    })
+    await cancelMission({ missionId: mission.id, userId: myUserId, cancelReason: value.trim() })
+    ElMessage.success('撤榜成功，押金已退回可用灵石')
+    detailDialogVisible.value = false
+    loadData()
+  } catch (e) {
+    // 用户点了「再想想」会以 'cancel' 拒绝，这里不处理；接口报错已由 request 拦截器统一提示
+  }
+}
+
+const handleCancelInDetail = () => {
+  if (currentMission.value) {
+    handleCancel(currentMission.value)
+  }
+}
+
 const handlePublishTrigger = async () => {
   if (!publishForm.value.title) return ElMessage.warning('榜文不可无标题！')
   isStamping.value = true
@@ -422,6 +461,9 @@ onMounted(() => {
 /* --- 按钮 --- */
 .primary-btn { background-color: #8b3a3a; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
 .primary-btn:hover { background-color: #a64d40; transform: translateY(-1px); }
+/* 撤榜按钮：与主色同色系但更深，用于「不可逆的撤销操作」 */
+.danger-btn { background-color: #a8201a; color: #fff; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; }
+.danger-btn:hover { background-color: #c4342c; transform: translateY(-1px); }
 .outline-btn { background: transparent; border: 1px solid #d9d9d9; color: #666; padding: 7px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; transition: all 0.2s; }
 .outline-btn:hover { border-color: #8b3a3a; color: #8b3a3a; }
 .small-outline-btn { background: transparent; border: 1px solid #ccc; color: #666; padding: 4px 12px; font-size: 12px; border-radius: 2px; cursor: pointer; margin-right: 8px; transition: all 0.2s; }

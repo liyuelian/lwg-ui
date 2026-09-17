@@ -46,3 +46,13 @@ export function auditMission(data) {
         data: data // { missionId, userId, pass, remark }
     })
 }
+
+// 6. 撤榜 (取消任务)
+// 仅发布者本人可调用，且后端要求任务处于「待接单(status=0)」状态，否则返回 400
+export function cancelMission(data) {
+    return request({
+        url: '/mission/cancel',
+        method: 'post',
+        data: data // { missionId, userId, cancelReason }
+    })
+}
