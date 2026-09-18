@@ -3,7 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 const routes = [
     {
         path: '/',
-        // 访问根目录时，自动跳转到任务大厅
+        // 访问根目录时，自动跳转到登录页
         redirect: '/login'
     },
     {
@@ -21,6 +21,12 @@ const routes = [
         path: '/dashboard',
         name: 'UserDashboard',
         component: () => import('../views/UserDashboard.vue')
+    },
+    {
+        // 天道碑（排行榜）。契约见 LWG docs/requirement-ranking.md 第 4 节
+        path: '/rank',
+        name: 'RankBoard',
+        component: () => import('../views/RankBoard.vue')
     }
 ]
 

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="灵务阁">
+  <!-- 朱砂印章：外框为印边，内为白文「灵」 -->
+  <rect width="64" height="64" rx="6" fill="#8b3a3a"/>
+  <rect x="5" y="5" width="54" height="54" rx="3" fill="none" stroke="#f5f0e6" stroke-width="2" stroke-opacity="0.55"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central"
+        font-family="Songti SC, STSong, SimSun, Noto Serif SC, Georgia, serif"
+        font-size="40" font-weight="700" fill="#f5f0e6">灵</text>
+</svg>

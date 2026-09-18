@@ -1,18 +1,408 @@
-/* src/style.css */
+/* ============================================================
+   灵务阁 · 全局样式与设计 token
+   ------------------------------------------------------------
+   规格来源：docs/frontend-redesign.md 第 2 节
+   约定：视图内只允许引用变量，不允许再写具体色值。
+   ============================================================ */
+
+/* --- 标题字体（离线 woff2，按 unicode-range 切片，font-display: swap）---
+   只用于标题（display），不用于正文：中文正文字体包体积不可接受。
+   不再引 Google Fonts：生产在阿里云、用户在国内，外链不可达且阻塞渲染。 */
+@import '@fontsource/noto-serif-sc/400.css';
+@import '@fontsource/noto-serif-sc/700.css';
+
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* ---------- 2.1 色彩（宣纸水墨，全站默认） ---------- */
+  --lwg-paper: #f5f0e6;          /* 页面底色（替换原冷灰 #f0f2f5） */
+  --lwg-paper-2: #ede5d8;        /* 次级区块底 / 表头 */
+  --lwg-paper-3: #fbf8f1;        /* 卡片底（比页面略亮，靠明度而非阴影分层） */
+  --lwg-ink: #2b2b2b;            /* 正文墨色 */
+  --lwg-ink-2: #4a4a4a;          /* 次级文字 */
+  --lwg-ink-3: #8a8175;          /* 弱化文字 / 注释 / 占位符 */
+  --lwg-cinnabar: #8b3a3a;       /* 主色（沿用现有值，保持连续性） */
+  --lwg-cinnabar-hover: #a64d40; /* 悬停 */
+  --lwg-cinnabar-active: #6e2c2c;/* 按下 / 深色强调 */
+  --lwg-cinnabar-wash: #f3ecea;  /* 主色极浅底（选中行、标签底） */
+  --lwg-gold: #b08d57;           /* 金线 / 次级强调（榜徽、分割装饰） */
+  --lwg-line: #d9cfc0;           /* 墨线边框（用 1px 边框取代卡片阴影） */
+  --lwg-line-strong: #b8ab97;    /* 强分割线 */
+  --lwg-danger: #a33a3a;         /* 危险操作（撤榜等） */
+  --lwg-success: #4a7c59;        /* 成功态 */
+  --lwg-on-accent: #fff;         /* 落在朱砂/危险底色上的前景色 */
+
+  /* 仅浮层（弹窗、吸底卡片）允许出现的唯一一档轻阴影 */
+  --lwg-shadow-float: 0 1px 2px rgba(43, 43, 43, .06);
+  --lwg-glow: transparent;       /* 暗色 Top3 微光在 .lwg-night 内覆盖 */
+  /* Top3 徽记色（规格 §2.2）：金 / 银 / 铜。榜单页专用，故未在文档 token 表中列出 */
+  --lwg-medal-1: #d4af6a;
+  --lwg-medal-1-bright: #e8cd96;
+  --lwg-medal-2: #b9c0c8;
+  --lwg-medal-3: #c08a5a;
+
+  /* ---------- 2.3 字体 ---------- */
+  /* Noto Serif SC 置首，未加载完时回落到系统衬线，不会出现无衬线的跳变 */
+  --lwg-font-display: "Noto Serif SC", "Songti SC", "STSong", "SimSun", Georgia, serif;
+  --lwg-font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                   "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  --lwg-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* ---------- 2.3 字号阶梯 12 / 13 / 14 / 16 / 20 / 28 / 32 ---------- */
+  --lwg-fs-xs: 12px;
+  --lwg-fs-sm: 13px;
+  --lwg-fs-base: 14px;
+  --lwg-fs-md: 16px;
+  --lwg-fs-lg: 20px;
+  --lwg-fs-xl: 28px;
+  --lwg-fs-2xl: 32px;
+
+  /* ---------- 2.4 形状与间距 ---------- */
+  --lwg-radius: 2px;             /* 宣纸/印章风格不宜大圆角 */
+  --lwg-sp-1: 4px;
+  --lwg-sp-2: 8px;
+  --lwg-sp-3: 12px;
+  --lwg-sp-4: 16px;
+  --lwg-sp-5: 24px;
+  --lwg-sp-6: 32px;
+  --lwg-sp-7: 48px;
+
+  /* ---------- 布局 ---------- */
+  --lwg-shell-max: 1200px;
+  --lwg-header-h: 60px;
+
+  /* ---------- 2.5 Element Plus 变量覆盖 ----------
+     不引 sass；light-3/5/7/8/9 为主色向白色混合的派生值 */
+  --el-color-primary: var(--lwg-cinnabar);
+  --el-color-primary-light-3: #a86a63;
+  --el-color-primary-light-5: #c39b95;
+  --el-color-primary-light-7: #ddc7c3;
+  --el-color-primary-light-8: #e8d9d6;
+  --el-color-primary-light-9: var(--lwg-cinnabar-wash);
+  --el-color-primary-dark-2: var(--lwg-cinnabar-active);
+  --el-color-danger: var(--lwg-danger);
+  --el-color-error: var(--lwg-danger);
+  --el-color-success: var(--lwg-success);
+  --el-border-radius-base: var(--lwg-radius);
+  --el-border-radius-small: var(--lwg-radius);
+  --el-border-color: var(--lwg-line);
+  --el-border-color-light: var(--lwg-line);
+  --el-border-color-lighter: var(--lwg-line);
+  --el-border-color-extra-light: var(--lwg-paper-2);
+  --el-text-color-primary: var(--lwg-ink);
+  --el-text-color-regular: var(--lwg-ink-2);
+  --el-text-color-secondary: var(--lwg-ink-3);
+  --el-text-color-placeholder: var(--lwg-ink-3);
+  --el-font-family: var(--lwg-font-body);
+  --el-fill-color-blank: var(--lwg-paper-3);
+  --el-bg-color: var(--lwg-paper-3);
+  --el-bg-color-overlay: var(--lwg-paper-3);
+  --el-bg-color-page: var(--lwg-paper);
 }
 
+/* ============================================================
+   2.2 暗色作用域 —— 仅「天道碑」使用
+   在榜单页根容器加 class="lwg-night"，局部覆盖同名变量，
+   其余页面完全不受影响。不引 element-plus 的 dark css-vars 全站切换。
+   ============================================================ */
+.lwg-night {
+  --lwg-paper: #12161c;          /* 碑面底色 */
+  --lwg-paper-2: #1b2029;        /* 次级区块 */
+  --lwg-paper-3: #1b2029;        /* 卡片底 */
+  --lwg-ink: #e8e3d9;            /* 正文（暖白，不用纯白） */
+  --lwg-ink-2: #9aa0a8;          /* 次级文字 */
+  --lwg-ink-3: #6b7178;          /* 弱化文字 */
+  --lwg-line: #2a313c;           /* 暗色墨线 */
+  --lwg-line-strong: #3a4450;
+  --lwg-gold: #d4af6a;           /* 暗底金，榜单主要强调色 */
+  --lwg-glow: rgba(212, 175, 106, .25); /* Top3 微光（box-shadow 唯一允许场景） */
+  --lwg-cinnabar-wash: rgba(212, 175, 106, .12); /* 暗色下"当前用户行"高亮 */
+
+  /* 弹窗若在该页打开，否则会白底跳出暗色主题 */
+  --el-color-primary: var(--lwg-gold);
+  --el-color-primary-light-3: #b9985f;
+  --el-color-primary-light-5: #8f7849;
+  --el-color-primary-light-7: #5f5334;
+  --el-color-primary-light-8: #463d27;
+  --el-color-primary-light-9: rgba(212, 175, 106, .12);
+  --el-color-primary-dark-2: #e8cd96;
+  --el-border-color: var(--lwg-line);
+  --el-border-color-light: var(--lwg-line);
+  --el-border-color-lighter: var(--lwg-line);
+  --el-text-color-primary: var(--lwg-ink);
+  --el-text-color-regular: var(--lwg-ink-2);
+  --el-text-color-secondary: var(--lwg-ink-3);
+  --el-text-color-placeholder: var(--lwg-ink-3);
+  --el-fill-color-blank: var(--lwg-paper-3);
+  --el-bg-color: var(--lwg-paper-3);
+  --el-bg-color-overlay: var(--lwg-paper-2);
+  --el-bg-color-page: var(--lwg-paper);
+  --el-mask-color: rgba(8, 10, 14, .8);
+}
+
+/* ============================================================
+   全局基础
+   ============================================================ */
 html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  height: 100%;
-  /* ⚠️ 关键：这里不能写 overflow: hidden，否则大厅滚不动 */
-  background-color: #f0f2f5;
+  min-height: 100%;
+  /* ⚠️ 不能写 overflow: hidden，否则页面滚不动 */
+  background-color: var(--lwg-paper);
+  color: var(--lwg-ink);
+  font-family: var(--lwg-font-body);
+  font-size: var(--lwg-fs-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-#app {
-  width: 100%;
-  height: 100%;
+#app { width: 100%; min-height: 100%; }
+
+h1, h2, h3, h4 { font-family: var(--lwg-font-display); }
+
+/* 选中色：朱砂淡染 */
+::selection { background: var(--lwg-cinnabar-wash); color: var(--lwg-cinnabar-active); }
+
+/* 全局滚动条：细墨线，不用系统蓝 */
+* { scrollbar-width: thin; scrollbar-color: var(--lwg-line-strong) transparent; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--lwg-line-strong);
+  border-radius: var(--lwg-radius);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--lwg-ink-3); }
+::-webkit-scrollbar-corner { background: transparent; }
+
+/* ============================================================
+   通用原子类（视图只引用变量，不写色值）
+   ============================================================ */
+
+/* --- 按钮：三种语义（主 / 描边 / 危险） --- */
+.lwg-btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: var(--lwg-radius);
+  background: transparent;
+  font-family: var(--lwg-font-body);
+  font-size: var(--lwg-fs-base);
+  line-height: 1;
+  padding: 9px 18px;
+  cursor: pointer;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+  white-space: nowrap;
+}
+.lwg-btn:disabled { cursor: not-allowed; opacity: .55; }
+
+.lwg-btn--primary { background: var(--lwg-cinnabar); color: var(--lwg-on-accent); }
+.lwg-btn--primary:not(:disabled):hover { background: var(--lwg-cinnabar-hover); }
+.lwg-btn--primary:not(:disabled):active { background: var(--lwg-cinnabar-active); }
+
+.lwg-btn--outline { border-color: var(--lwg-line-strong); color: var(--lwg-ink-2); }
+.lwg-btn--outline:not(:disabled):hover { border-color: var(--lwg-cinnabar); color: var(--lwg-cinnabar); }
+
+.lwg-btn--danger { border-color: var(--lwg-danger); color: var(--lwg-danger); }
+.lwg-btn--danger:not(:disabled):hover { background: var(--lwg-danger); color: var(--lwg-on-accent); }
+
+.lwg-btn--sm { padding: 6px 12px; font-size: var(--lwg-fs-sm); }
+
+/* 暗色作用域内的按钮跟随 token 自动翻转，无需另写一套 */
+.lwg-night .lwg-btn--primary { color: var(--lwg-paper); }
+.lwg-night .lwg-btn--outline:not(:disabled):hover { border-color: var(--lwg-gold); color: var(--lwg-gold); }
+.lwg-night .lwg-status--1,
+.lwg-night .lwg-status--2 { border-color: var(--lwg-gold); color: var(--lwg-gold); }
+
+/* --- 卡片：1px 墨线取代阴影 --- */
+.lwg-card {
+  background: var(--lwg-paper-3);
+  border: 1px solid var(--lwg-line);
+  border-radius: var(--lwg-radius);
+}
+
+/* --- 页头（各视图共用）：标题 + 副题 + 右侧动作 --- */
+.lwg-page-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--lwg-sp-4);
+  flex-wrap: wrap;
+  padding-bottom: var(--lwg-sp-3);
+  border-bottom: 1px solid var(--lwg-line);
+  margin-bottom: var(--lwg-sp-5);
+}
+.lwg-page-title {
+  font-family: var(--lwg-font-display);
+  font-size: var(--lwg-fs-xl);
+  font-weight: 700;
+  letter-spacing: 3px; /* 收敛自原来的 10px：长标题不再散 */
+  color: var(--lwg-ink);
+  margin: 0;
+  line-height: 1.35;
+}
+.lwg-page-sub {
+  font-size: var(--lwg-fs-sm);
+  color: var(--lwg-ink-3);
+  letter-spacing: 1px;
+  margin: 6px 0 0;
+}
+
+/* --- 分段页签（大厅 / 个人中心共用） --- */
+.lwg-tabs {
+  display: flex;
+  gap: var(--lwg-sp-5);
+  border-bottom: 1px solid var(--lwg-line);
+  margin-bottom: var(--lwg-sp-5);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.lwg-tabs::-webkit-scrollbar { display: none; }
+.lwg-tab {
+  position: relative;
+  padding: 10px 2px;
+  font-size: var(--lwg-fs-base);
+  color: var(--lwg-ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color .18s ease;
+}
+.lwg-tab:hover { color: var(--lwg-cinnabar); }
+.lwg-tab.is-active { color: var(--lwg-cinnabar); font-weight: 700; }
+.lwg-tab.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: var(--lwg-cinnabar);
+}
+.lwg-tab.is-disabled { color: var(--lwg-ink-3); cursor: not-allowed; }
+.lwg-tab.is-disabled:hover { color: var(--lwg-ink-3); }
+
+/* --- 状态徽记：0 待接单 / 1 进行中 / 2 待验收 / 3 已完成 / 4 已取消 --- */
+.lwg-status {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: var(--lwg-radius);
+  border: 1px solid transparent;
+  font-size: var(--lwg-fs-xs);
+  white-space: nowrap;
+}
+.lwg-status--0 { border-color: var(--lwg-gold); color: var(--lwg-gold); }
+.lwg-status--1 { border-color: var(--lwg-cinnabar); color: var(--lwg-cinnabar); }
+.lwg-status--2 { border-color: var(--lwg-cinnabar-hover); color: var(--lwg-cinnabar-hover); }
+.lwg-status--3 { border-color: var(--lwg-success); color: var(--lwg-success); }
+.lwg-status--4 { border-color: var(--lwg-line-strong); color: var(--lwg-ink-3); }
+
+/* --- 就地反馈：可预期失败（抢单被抢先等）不弹 toast，卡片内红字 2s 淡出 --- */
+.lwg-inline-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--lwg-sp-2);
+  padding: 6px 10px;
+  border: 1px solid var(--lwg-danger);
+  border-left-width: 3px;
+  border-radius: var(--lwg-radius);
+  background: var(--lwg-cinnabar-wash);
+  color: var(--lwg-danger);
+  font-size: var(--lwg-fs-sm);
+  line-height: 1.5;
+}
+.lwg-inline-error.is-fading { animation: lwgFadeOut .35s ease 1.65s forwards; }
+.lwg-inline-error.is-success { border-color: var(--lwg-success); color: var(--lwg-success); }
+@keyframes lwgFadeOut { to { opacity: 0; } }
+
+/* --- 空态 / 引导态 --- */
+.lwg-empty {
+  padding: var(--lwg-sp-6) var(--lwg-sp-4);
+  text-align: center;
+  color: var(--lwg-ink-3);
+  font-size: var(--lwg-fs-base);
+  line-height: 1.9;
+}
+.lwg-empty__mark {
+  display: block;
+  font-family: var(--lwg-font-display);
+  font-size: var(--lwg-fs-xl);
+  color: var(--lwg-line-strong);
+  letter-spacing: 6px;
+  margin-bottom: var(--lwg-sp-2);
+}
+
+/* --- 等宽数字（金额 / 时间 / ID） --- */
+.lwg-mono { font-family: var(--lwg-font-mono); font-variant-numeric: tabular-nums; }
+.lwg-num { font-family: var(--lwg-font-mono); font-variant-numeric: tabular-nums; font-weight: 700; }
+.lwg-amount-out { color: var(--lwg-success); }
+.lwg-amount-in { color: var(--lwg-danger); }
+.lwg-muted { color: var(--lwg-ink-3); }
+.lwg-dash { color: var(--lwg-line-strong); }
+
+/* ============================================================
+   路由过渡：120ms 淡入，消除首次进入大厅的白屏空档
+   ============================================================ */
+.fade-enter-active { transition: opacity .12s ease; }
+.fade-leave-active { transition: opacity .12s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-enter-active, .fade-leave-active { transition: none; }
+  * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}
+
+/* ============================================================
+   Element Plus 细节对齐（宣纸水墨）
+   ============================================================ */
+.el-table {
+  --el-table-border-color: var(--lwg-line);
+  --el-table-header-bg-color: var(--lwg-paper-2);
+  --el-table-header-text-color: var(--lwg-ink-2);
+  --el-table-text-color: var(--lwg-ink);
+  --el-table-bg-color: var(--lwg-paper-3);
+  --el-table-tr-bg-color: var(--lwg-paper-3);
+  --el-table-row-hover-bg-color: var(--lwg-cinnabar-wash);
+  --el-table-current-row-bg-color: var(--lwg-cinnabar-wash);
+  font-family: var(--lwg-font-body);
+}
+.el-table th.el-table__cell { font-weight: 500; }
+.el-table .el-table__inner-wrapper::before { background-color: var(--lwg-line); }
+
+.el-dialog {
+  --el-dialog-border-radius: var(--lwg-radius);
+  background: var(--lwg-paper-3);
+  border: 1px solid var(--lwg-line);
+  box-shadow: var(--lwg-shadow-float);
+}
+.el-dialog__title { font-family: var(--lwg-font-display); color: var(--lwg-ink); }
+.el-message-box {
+  --el-messagebox-border-radius: var(--lwg-radius);
+  background: var(--lwg-paper-3);
+  border: 1px solid var(--lwg-line);
+}
+.el-message-box__title { font-family: var(--lwg-font-display); color: var(--lwg-ink); }
+.el-message-box__content { color: var(--lwg-ink-2); }
+
+.el-pagination {
+  --el-pagination-button-bg-color: transparent;
+  --el-pagination-hover-color: var(--lwg-cinnabar);
+  font-family: var(--lwg-font-body);
+}
+
+.el-tag { border-radius: var(--lwg-radius); }
+
+.el-radio-button__inner { font-family: var(--lwg-font-body); }
+.el-radio-button__original-radio:checked + .el-radio-button__inner {
+  box-shadow: -1px 0 0 0 var(--lwg-cinnabar);
+}
+
+.el-loading-mask { background-color: rgba(251, 248, 241, .82); }
+.el-loading-spinner .path { stroke: var(--lwg-cinnabar); }
+.lwg-night .el-loading-mask { background-color: rgba(18, 22, 28, .72); }
+.lwg-night .el-loading-spinner .path { stroke: var(--lwg-gold); }
+
+.el-popper.is-light {
+  background: var(--lwg-paper-3);
+  border-color: var(--lwg-line);
+  color: var(--lwg-ink);
+}
+.el-popper.is-light .el-popper__arrow::before {
+  background: var(--lwg-paper-3);
+  border-color: var(--lwg-line);
 }
