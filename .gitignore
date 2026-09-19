@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# 自测产物（scripts/verify-ui.mjs 的截图与报告）
+artifacts/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
