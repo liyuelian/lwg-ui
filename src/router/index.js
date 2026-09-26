@@ -2,6 +2,10 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
     {
+        path: '/rank',
+        redirect: '/mission-hall?rank=1'
+    },
+    {
         path: '/',
         // 访问根目录时，自动跳转到任务大厅
         redirect: '/login'

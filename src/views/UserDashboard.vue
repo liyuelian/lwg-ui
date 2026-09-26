@@ -66,6 +66,7 @@
           <span class="ink-text">灵脉灌注</span>
         </div>
         <button class="primary-btn" @click="$router.push('/mission-hall')">前往大厅</button>
+        <button class="primary-btn" @click="rankDialogVisible = true">天道碑</button>
       </div>
     </div>
 
@@ -245,7 +246,7 @@
       <div class="reputation-dialog-body" v-loading="repLoading">
         <div style="text-align: center; margin-bottom: 20px;">
           <h1 :style="{ color: getReputationColor(userInfo.reputation), fontSize: '36px', margin: '0 0 10px 0' }">
-            {{ (userInfo.reputation / 100).toFixed(2) }}
+            {{ formatReputation(userInfo.reputation) }}
           </h1>
         </div>
         <el-divider style="margin: 15px 0;"/>
@@ -255,7 +256,7 @@
               <div style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #eee;">
                 <div style="font-weight: bold; font-size: 14px; margin-bottom: 4px; color: #333;">{{ log.remark }}</div>
                 <div style="font-size: 12px; color: #666;">
-                  变动: <span :style="{ color: log.changeScore > 0 ? '#67C23A' : '#F56C6C', fontWeight: 'bold' }">{{ log.changeScore > 0 ? '+' : '' }}{{ (log.changeScore / 100).toFixed(2) }}</span>
+                  变动: <span :style="{ color: log.changeScore > 0 ? '#67C23A' : '#F56C6C', fontWeight: 'bold' }">{{ log.changeScore > 0 ? '+' : '' }}{{ formatReputation(log.changeScore ?? 0) }}</span>
                 </div>
               </div>
             </el-timeline-item>
@@ -264,6 +265,8 @@
         </div>
       </div>
     </el-dialog>
+
+    <RankScroll v-model="rankDialogVisible" />
 
     <el-dialog v-model="submitDialogVisible" width="500px" class="custom-dialog paper-dialog" :show-close="false" align-center>
       <template #header>
@@ -338,6 +341,8 @@ import {
 import {submitMission, auditMission} from '../api/mission'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import * as echarts from 'echarts'
+import RankScroll from '../components/RankScroll.vue'
+import { formatReputation } from '../utils/reputation'
 
 const myUserId = Number(localStorage.getItem('lwg_user_id'))
 const userInfo = ref({})
@@ -356,6 +361,7 @@ const queryParams = ref({ userId: myUserId, page: 1, pageSize: 10, category: 'al
 
 // 信誉弹窗专用变量
 const reputationDialogVisible = ref(false)
+const rankDialogVisible = ref(false)
 const repLoading = ref(false)
 const reputationLogs = ref([])
 
@@ -827,10 +833,13 @@ const copyUid = async () => {
   justify-content: flex-end;
   align-items: center;
   gap: 15px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .recharge-btn-ink {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
   padding: 6px 20px;
@@ -847,6 +856,7 @@ const copyUid = async () => {
 
 .ink-seal {
   display: inline-flex;
+  flex: 0 0 20px;
   align-items: center;
   justify-content: center;
   width: 20px;
@@ -866,7 +876,7 @@ const copyUid = async () => {
   font-weight: 600;
   color: #5d4037;
   letter-spacing: 2px;
-  margin-right: -2px;
+  white-space: nowrap;
   transition: color 0.3s ease;
 }
 
@@ -876,6 +886,23 @@ const copyUid = async () => {
 .recharge-btn-ink:hover .ink-text { color: #a63434; }
 .recharge-btn-ink:hover .ink-seal { transform: rotate(0deg) scale(1.1); }
 .recharge-btn-ink:active { transform: translateY(1px); }
+
+@media (max-width: 900px) {
+  .user-card { height: auto; padding: 22px; flex-direction: column; align-items: stretch; gap: 20px; }
+  .left-panel, .middle-panel, .right-panel { flex: none; width: 100%; }
+  .vertical-divider { width: 100%; height: 1px; margin: 0; }
+  .right-panel { justify-content: flex-start; }
+  .info-container { min-width: 0; }
+  .name-box { flex-wrap: wrap; }
+  .username { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 480px) {
+  .left-panel { gap: 14px; }
+  .right-panel { gap: 12px; }
+  .recharge-btn-ink { padding: 6px 12px; }
+  .right-panel .primary-btn { padding-left: 14px; padding-right: 14px; }
+}
 
 .content-card {
   padding: 30px 40px;

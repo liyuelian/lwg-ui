@@ -23,7 +23,7 @@ service.interceptors.response.use(
         const res = response.data
         // 如果 code 不是 200，说明后端报错了
         if (res.code !== 200) {
-            ElMessage.error(res.msg || '系统错误')
+            if (!response.config.inlineError) ElMessage.error(res.msg || '系统错误')
             return Promise.reject(new Error(res.msg || 'Error'))
         } else {
             return res.data
@@ -31,7 +31,7 @@ service.interceptors.response.use(
     },
     error => {
         console.error('API Error:', error)
-        ElMessage.error(error.message || '请求失败')
+        if (!error.config?.inlineError) ElMessage.error(error.message || '请求失败')
         return Promise.reject(error)
     }
 )

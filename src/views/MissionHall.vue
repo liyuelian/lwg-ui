@@ -13,6 +13,7 @@
             <span class="dot"></span> 道友 ID: {{ myUserId }}
           </span>
           <button class="outline-btn" @click="$router.push('/dashboard')">个人中心</button>
+          <button class="outline-btn" @click="rankDialogVisible = true">天道碑</button>
           <button class="outline-btn" @click="handleLogout">退隐山林</button>
           <button class="primary-btn publish-btn" @click="openPublishDialog">+ 发布悬赏</button>
         </div>
@@ -272,6 +273,7 @@
         </template>
       </el-dialog>
 
+      <RankScroll v-model="rankDialogVisible" />
     </div>
   </div>
 </template>
@@ -280,7 +282,8 @@
 import { ref, onMounted, reactive } from 'vue'
 import { getMissionList, acceptMission, publishMission, cancelMission } from '../api/mission'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import RankScroll from '../components/RankScroll.vue'
 
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
@@ -290,7 +293,9 @@ const formatDate = (dateStr) => {
 const loading = ref(false)
 const tableData = ref([])
 const router = useRouter()
+const route = useRoute()
 const myUserId = Number(localStorage.getItem('lwg_user_id'))
+const rankDialogVisible = ref(false)
 
 const publishDialogVisible = ref(false)
 const detailDialogVisible = ref(false)
@@ -433,6 +438,7 @@ onMounted(() => {
     return
   }
   loadData()
+  if (route.query.rank === '1') rankDialogVisible.value = true
 })
 </script>
 
